@@ -78,7 +78,7 @@ Inductive day : Type :=
   | sunday.
 
 (** The type is called [day], and its members are [monday],
-    [tuesday], etc. 
+    [tuesday], etc.
 
     Having defined [day], we can write functions that operate on
     days. *)
@@ -274,7 +274,7 @@ Proof. simpl. reflexivity. Qed.
     parts that we're leaving for you -- i.e., your job is to replace
     [Admitted]s with real proofs. *)
 
-(** **** Exercise: 1 star, standard (nandb)  
+(** **** Exercise: 1 star, standard (nandb)
 
     Remove "[Admitted.]" and complete the definition of the following
     function; then make sure that the [Example] assertions below can
@@ -282,20 +282,24 @@ Proof. simpl. reflexivity. Qed.
     model of the [orb] tests above.) The function should return [true]
     if either or both of its inputs are [false]. *)
 
-Definition nandb (b1:bool) (b2:bool) : bool
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition nandb (b1:bool) (b2:bool) : bool :=
+  match b1 with
+  | false => true
+  | true  => negb b2
+  end.
+
 
 Example test_nandb1:               (nandb true false) = true.
-(* FILL IN HERE *) Admitted.
+Proof. simpl.  reflexivity. Qed.
 Example test_nandb2:               (nandb false false) = true.
-(* FILL IN HERE *) Admitted.
+Proof. simpl. reflexivity. Qed.
 Example test_nandb3:               (nandb false true) = true.
-(* FILL IN HERE *) Admitted.
+Proof. simpl. reflexivity. Qed.
 Example test_nandb4:               (nandb true true) = false.
-(* FILL IN HERE *) Admitted.
+Proof. simpl. reflexivity. Qed.
 (** [] *)
 
-(** **** Exercise: 1 star, standard (andb3)  
+(** **** Exercise: 1 star, standard (andb3)
 
     Do the same for the [andb3] function below. This function should
     return [true] when all of its inputs are [true], and [false]
@@ -364,7 +368,7 @@ Inductive color : Type :=
     Every inductively defined type ([day], [bool], [rgb], [color],
     etc.) contains a set of _constructor expressions_ built from
     _constructors_ like [red], [primary], [true], [false], [monday],
-    etc. 
+    etc.
 
     The definitions of [rgb] and [color] say how expressions in the
     sets [rgb] and [color] can be built:
@@ -689,7 +693,7 @@ Fixpoint exp (base power : nat) : nat :=
     | S p => mult base (exp base p)
   end.
 
-(** **** Exercise: 1 star, standard (factorial)  
+(** **** Exercise: 1 star, standard (factorial)
 
     Recall the standard mathematical factorial function:
 
@@ -783,7 +787,7 @@ Notation "x <=? y" := (leb x y) (at level 70) : nat_scope.
 Example test_leb3':             (4 <=? 2) = false.
 Proof. simpl. reflexivity.  Qed.
 
-(** **** Exercise: 1 star, standard (ltb)  
+(** **** Exercise: 1 star, standard (ltb)
 
     The [ltb] function tests natural numbers for [l]ess-[t]han,
     yielding a [b]oolean.  Instead of making up a new [Fixpoint] for
@@ -946,7 +950,7 @@ Proof.
     making this change in the above proof and see what difference it
     makes.) *)
 
-(** **** Exercise: 1 star, standard (plus_id_exercise)  
+(** **** Exercise: 1 star, standard (plus_id_exercise)
 
     Remove "[Admitted.]" and fill in the proof. *)
 
@@ -988,7 +992,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 
   (* (N.b. This proof can actually be completed with tactics other than
-     [rewrite], but please do use [rewrite] for the sake of the exercise.) 
+     [rewrite], but please do use [rewrite] for the sake of the exercise.)
 
     [] *)
 
@@ -1205,7 +1209,7 @@ Proof.
   - reflexivity.
 Qed.
 
-(** **** Exercise: 2 stars, standard (andb_true_elim2)  
+(** **** Exercise: 2 stars, standard (andb_true_elim2)
 
     Prove the following claim, marking cases (and subcases) with
     bullets when you use [destruct]. *)
@@ -1295,7 +1299,7 @@ Fixpoint plus' (n : nat) (m : nat) : nat :=
     "decreasing analysis" is not very sophisticated, it is sometimes
     necessary to write functions in slightly unnatural ways. *)
 
-(** **** Exercise: 2 stars, standard, optional (decreasing)  
+(** **** Exercise: 2 stars, standard, optional (decreasing)
 
     To get a concrete sense of this, find a way to write a sensible
     [Fixpoint] definition (of a simple function on numbers, say) that
@@ -1305,7 +1309,7 @@ Fixpoint plus' (n : nat) (m : nat) : nat :=
     out your solution so that it doesn't cause Coq to reject the whole
     file!) *)
 
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
@@ -1317,7 +1321,7 @@ Fixpoint plus' (n : nat) (m : nat) : nat :=
     [make BasicsTest.vo] in a terminal and check its output to make
     sure you didn't miss anything. *)
 
-(** **** Exercise: 1 star, standard (indentity_fn_applied_twice)  
+(** **** Exercise: 1 star, standard (indentity_fn_applied_twice)
 
     Use the tactics you have learned so far to prove the following
     theorem about boolean functions. *)
@@ -1331,7 +1335,7 @@ Proof.
 
 (** [] *)
 
-(** **** Exercise: 1 star, standard (negation_fn_applied_twice)  
+(** **** Exercise: 1 star, standard (negation_fn_applied_twice)
 
     Now state and prove a theorem [negation_fn_applied_twice] similar
     to the previous one but where the second hypothesis says that the
@@ -1348,7 +1352,7 @@ From Coq Require Export String.
 Definition manual_grade_for_negation_fn_applied_twice : option (nat*string) := None.
 (** [] *)
 
-(** **** Exercise: 3 stars, standard, optional (andb_eq_orb)  
+(** **** Exercise: 3 stars, standard, optional (andb_eq_orb)
 
     Prove the following theorem.  (Hint: This one can be a bit tricky,
     depending on how you approach it.  You will probably need both
@@ -1364,7 +1368,7 @@ Proof.
 
 (** [] *)
 
-(** **** Exercise: 3 stars, standard (binary)  
+(** **** Exercise: 3 stars, standard (binary)
 
     We can generalize our unary representation of natural numbers to
     the more efficient binary representation by treating a binary
