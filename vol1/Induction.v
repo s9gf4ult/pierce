@@ -189,7 +189,7 @@ Proof.
     variables, the [induction] tactic will automatically move them
     into the context as needed.) *)
 
-(** **** Exercise: 2 stars, standard, recommended (basic_induction)  
+(** **** Exercise: 2 stars, standard, recommended (basic_induction)
 
     Prove the following using induction. You might need previously
     proven results. *)
@@ -197,25 +197,81 @@ Proof.
 Theorem mult_0_r : forall n:nat,
   n * 0 = 0.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction n.
+  - reflexivity.
+  - simpl. rewrite -> IHn. reflexivity.
+Qed.
+
+Theorem plus_eq_S : forall n : nat,
+    S n = n + 1.
+Proof.
+  induction n.
+  - simpl. reflexivity.
+  - simpl. rewrite -> IHn. reflexivity.
+Qed.
 
 Theorem plus_n_Sm : forall n m : nat,
   S (n + m) = n + (S m).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction n. {
+    simpl. reflexivity.
+  } {
+    induction m. {
+      simpl.
+      rewrite <- plus_n_O.
+      rewrite <- plus_eq_S.
+      reflexivity.
+    } {
+      rewrite <- IHm.
+      simpl.
+      rewrite <- IHn.
+      rewrite <- plus_n_Sm.
+      reflexivity.
+    }
+  }
+Qed.
+
 
 Theorem plus_comm : forall n m : nat,
   n + m = m + n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction n. {
+    simpl.
+    intros m.
+    rewrite <- plus_n_O.
+    reflexivity.
+  } {
+    induction m. {
+      simpl. rewrite <- plus_n_O. reflexivity.
+    } {
+      simpl.
+      rewrite <- IHm.
+      simpl.
+      rewrite -> IHn.
+      simpl.
+      rewrite -> IHn.
+      reflexivity.
+    }
+  }
+Qed.
+
 
 Theorem plus_assoc : forall n m p : nat,
   n + (m + p) = (n + m) + p.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction n. {
+    simpl.
+    reflexivity.
+  } {
+    simpl.
+    intros m p.
+    rewrite <- IHn.
+    reflexivity.
+  }
+Qed.
 (** [] *)
 
-(** **** Exercise: 2 stars, standard (double_plus)  
+(** **** Exercise: 2 stars, standard (double_plus)
 
     Consider the following function, which doubles its argument: *)
 
@@ -229,10 +285,20 @@ Fixpoint double (n:nat) :=
 
 Lemma double_plus : forall n, double n = n + n .
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction n. {
+    simpl. reflexivity.
+  } {
+    simpl.
+    rewrite -> IHn.
+    rewrite <- plus_n_Sm.
+    reflexivity.
+  }
+Qed.
+
+
 (** [] *)
 
-(** **** Exercise: 2 stars, standard, optional (evenb_S)  
+(** **** Exercise: 2 stars, standard, optional (evenb_S)
 
     One inconvenient aspect of our definition of [evenb n] is the
     recursive call on [n - 2]. This makes proofs about [evenb n]
@@ -244,10 +310,19 @@ Proof.
 Theorem evenb_S : forall n : nat,
   evenb (S n) = negb (evenb n).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction n. {
+    simpl. reflexivity.
+  } {
+    rewrite -> IHn.
+    simpl.
+    rewrite -> negb_involutive.
+    reflexivity.
+  }
+  Qed.
+
 (** [] *)
 
-(** **** Exercise: 1 star, standard (destruct_induction)  
+(** **** Exercise: 1 star, standard (destruct_induction)
 
     Briefly explain the difference between the tactics [destruct]
     and [induction].
@@ -449,7 +524,7 @@ Proof.
     whereas the informal proof reminds the reader several times where
     things stand). *)
 
-(** **** Exercise: 2 stars, advanced, recommended (plus_comm_informal)  
+(** **** Exercise: 2 stars, advanced, recommended (plus_comm_informal)
 
     Translate your solution for [plus_comm] into an informal proof:
 
@@ -462,7 +537,7 @@ Proof.
 Definition manual_grade_for_plus_comm_informal : option (nat*string) := None.
 (** [] *)
 
-(** **** Exercise: 2 stars, standard, optional (eqb_refl_informal)  
+(** **** Exercise: 2 stars, standard, optional (eqb_refl_informal)
 
     Write an informal proof of the following theorem, using the
     informal proof of [plus_assoc] as a model.  Don't just
@@ -477,7 +552,7 @@ Definition manual_grade_for_plus_comm_informal : option (nat*string) := None.
 (* ################################################################# *)
 (** * More Exercises *)
 
-(** **** Exercise: 3 stars, standard, recommended (mult_comm)  
+(** **** Exercise: 3 stars, standard, recommended (mult_comm)
 
     Use [assert] to help prove this theorem.  You shouldn't need to
     use induction on [plus_swap]. *)
@@ -498,7 +573,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, standard, optional (more_exercises)  
+(** **** Exercise: 3 stars, standard, optional (more_exercises)
 
     Take a piece of paper.  For each of the following theorems, first
     _think_ about whether (a) it can be proved using only
@@ -559,7 +634,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, standard, optional (eqb_refl)  
+(** **** Exercise: 2 stars, standard, optional (eqb_refl)
 
     Prove the following theorem.  (Putting the [true] on the left-hand
     side of the equality may look odd, but this is how the theorem is
@@ -573,7 +648,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, standard, optional (plus_swap')  
+(** **** Exercise: 2 stars, standard, optional (plus_swap')
 
     The [replace] tactic allows you to specify a particular subterm to
    rewrite and what you want it rewritten to: [replace (t) with (u)]
@@ -590,7 +665,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, standard, recommended (binary_commute)  
+(** **** Exercise: 3 stars, standard, recommended (binary_commute)
 
     Recall the [incr] and [bin_to_nat] functions that you
     wrote for the [binary] exercise in the [Basics] chapter.  Prove
@@ -622,7 +697,7 @@ Proof.
 Definition manual_grade_for_binary_commute : option (nat*string) := None.
 (** [] *)
 
-(** **** Exercise: 5 stars, advanced (binary_inverse)  
+(** **** Exercise: 5 stars, advanced (binary_inverse)
 
     This is a further continuation of the previous exercises about
     binary numbers.  You may find you need to go back and change your
