@@ -560,7 +560,17 @@ Definition manual_grade_for_plus_comm_informal : option (nat*string) := None.
 Theorem plus_swap : forall n m p : nat,
   n + (m + p) = m + (n + p).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m p.
+  assert (H1: n + (m + p) = (n + m) + p). {
+    rewrite -> plus_assoc. reflexivity.
+  } rewrite H1.
+  assert (H2: n + m = m + n). {
+    rewrite -> plus_comm. reflexivity.
+  } rewrite H2.
+  rewrite -> plus_assoc.
+  reflexivity.
+Qed.
+
 
 (** Now prove commutativity of multiplication.  (You will probably
     need to define and prove a separate subsidiary theorem to be used
@@ -570,7 +580,28 @@ Proof.
 Theorem mult_comm : forall m n : nat,
   m * n = n * m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction m. {
+    simpl. intros n. rewrite -> mult_0_r. reflexivity.
+  } {
+    induction n. {
+      simpl. rewrite -> mult_0_r. reflexivity.
+    } {
+      simpl.
+      rewrite <- IHn.
+      simpl.
+      rewrite -> plus_swap.
+      assert (H1: n + (m + m * n) = n + m + m * n). {
+        rewrite -> plus_assoc. reflexivity.
+      } rewrite -> H1.
+      rewrite -> IHm.
+      simpl.
+      rewrite -> plus_assoc.
+      rewrite -> IHm.
+      reflexivity.
+    }
+  }
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, standard, optional (more_exercises)
