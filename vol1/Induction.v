@@ -619,17 +619,28 @@ Check leb.
 Theorem leb_refl : forall n:nat,
   true = (n <=? n).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction n. {
+    simpl. reflexivity.
+  } {
+    simpl. rewrite <- IHn. reflexivity.
+  }
+Qed.
+
 
 Theorem zero_nbeq_S : forall n:nat,
   0 =? (S n) = false.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n.
+  simpl. reflexivity.
+Qed.
 
 Theorem andb_false_r : forall b : bool,
   andb b false = false.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  destruct b.
+  - simpl. reflexivity.
+  - simpl. reflexivity.
+Qed.
 
 Theorem plus_ble_compat_l : forall n m p : nat,
   n <=? m = true -> (p + n) <=? (p + m) = true.
@@ -676,7 +687,12 @@ Proof.
 Theorem eqb_refl : forall n : nat,
   true = (n =? n).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n.
+  induction n.
+  - reflexivity.
+  - simpl. rewrite <- IHn. reflexivity.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (plus_swap')
@@ -693,7 +709,17 @@ Proof.
 Theorem plus_swap' : forall n m p : nat,
   n + (m + p) = m + (n + p).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m p.
+  replace (n + (m + p)) with (n + m + p).
+  replace (n + m + p) with (m + n + p).
+  replace (m + n + p) with (m + (n + p)).
+  reflexivity.
+  - rewrite <- plus_assoc. reflexivity.
+  - replace (m + n) with (n + m). reflexivity.
+    + rewrite -> plus_comm. reflexivity.
+  - rewrite -> plus_assoc. reflexivity.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, standard, recommended (binary_commute)
