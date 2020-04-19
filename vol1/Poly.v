@@ -735,13 +735,16 @@ Proof. reflexivity. Qed.
 Definition partition {X : Type}
                      (test : X -> bool)
                      (l : list X)
-                   : list X * list X
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+  : list X * list X
+  := (filter test l, filter (fun a => negb (test a)) l).
+
 
 Example test_partition1: partition oddb [1;2;3;4;5] = ([1;3;5], [2;4]).
-(* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
+
 Example test_partition2: partition (fun x => false) [5;9;0] = ([], [5;9;0]).
-(* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
+
 (** [] *)
 
 (* ================================================================= *)
@@ -788,10 +791,33 @@ Proof. reflexivity.  Qed.
     Show that [map] and [rev] commute.  You may need to define an
     auxiliary lemma. *)
 
+Theorem map_app : forall (X Y : Type) (f : X -> Y) (x : X) (l : list X),
+    map f (l ++ [x]) = map f l ++ [f x].
+Proof.
+  intros X Y f x.
+  induction l as [|a aa Hl]. {
+    simpl. reflexivity.
+  } {
+    simpl.
+    rewrite <- Hl.
+    reflexivity.
+  }
+Qed.
+
 Theorem map_rev : forall (X Y : Type) (f : X -> Y) (l : list X),
   map f (rev l) = rev (map f l).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X Y f.
+  induction l as [|x xs Hl]. {
+    simpl. reflexivity.
+  } {
+    simpl.
+    rewrite <- Hl.
+    rewrite -> map_app.
+    reflexivity.
+  }
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, recommended (flat_map)
@@ -806,14 +832,16 @@ Proof.
       = [1; 2; 3; 5; 6; 7; 10; 11; 12].
 *)
 
-Fixpoint flat_map {X Y: Type} (f: X -> list Y) (l: list X)
-                   : (list Y)
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Fixpoint flat_map {X Y: Type} (f: X -> list Y) (l: list X) : (list Y) :=
+  match l with
+  | nil     => nil
+  | x :: xx => f x ++ flat_map f xx
+  end.
 
 Example test_flat_map1:
   flat_map (fun n => [n;n;n]) [1;5;4]
   = [1; 1; 1; 5; 5; 5; 4; 4; 4].
- (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 (** [] *)
 
 (** Lists are not the only inductive type for which [map] makes sense.
@@ -970,7 +998,16 @@ Proof. reflexivity. Qed.
 Theorem fold_length_correct : forall X (l : list X),
   fold_length l = length l.
 Proof.
-(* FILL IN HERE *) Admitted.
+  intros X.
+  induction l as [|x xs H] . {
+    reflexivity.
+  } {
+    simpl.
+    rewrite <- H.
+    reflexivity.
+  }
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, standard (fold_map)
@@ -978,15 +1015,26 @@ Proof.
     We can also define [map] in terms of [fold].  Finish [fold_map]
     below. *)
 
-Definition fold_map {X Y: Type} (f: X -> Y) (l: list X) : list Y
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition fold_map {X Y: Type} (f: X -> Y) (l: list X) : list Y :=
+  fold (fun a b => f a :: b) l nil.
 
 (** Write down a theorem [fold_map_correct] in Coq stating that
    [fold_map] is correct, and prove it.  (Hint: again, remember that
    [reflexivity] simplifies expressions a bit more aggressively than
    [simpl].) *)
 
-(* FILL IN HERE *)
+Theorem fold_map_correct : forall (X Y : Type) (f : X -> Y) (l : list X),
+    map f l = fold_map f l.
+Proof.
+  intros X Y f.
+  induction l as [|x xs H]. {
+    reflexivity.
+  } {
+    simpl.
+    rewrite -> H.
+    reflexivity.
+  }
+Qed.
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_fold_map : option (nat*string) := None.
