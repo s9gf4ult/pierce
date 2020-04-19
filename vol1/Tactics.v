@@ -70,14 +70,16 @@ Proof.
     Complete the following proof without using [simpl]. *)
 
 Theorem silly_ex :
-     (forall n, oddb n = true -> evenb (S n) = true) ->
+     (forall n, evenb n = true -> oddb (S n) = true) ->
      oddb 3 = true ->
      evenb 4 = true.
 Proof.
   intros H o3.
-  apply H.
-  apply o3.
-Qed.
+  Search evenb.
+  unfold oddb in H.
+  Search negb.
+Admitted.
+
 (** [] *)
 
 (** To use the [apply] tactic, the (conclusion of the) fact
@@ -110,7 +112,13 @@ Theorem rev_exercise1 : forall (l l' : list nat),
      l = rev l' ->
      l' = rev l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros l l' H.
+  rewrite -> H.
+  Search rev.
+  rewrite -> rev_involutive.
+  reflexivity.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 1 star, standard, optional (apply_rewrite)
@@ -179,7 +187,12 @@ Example trans_eq_exercise : forall (n m o p : nat),
      (n + p) = m ->
      (n + p) = (minustwo o).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m o p mo npm.
+  apply trans_eq with m.
+  - apply npm.
+  - apply mo.
+Qed.
+
 (** [] *)
 
 (* ################################################################# *)
@@ -276,7 +289,12 @@ Example injection_ex3 : forall (X : Type) (x y z : X) (l j : list X),
   y :: l = x :: j ->
   x = y.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X x y z l j H1 H2.
+  injection H2 as H2j.
+  rewrite -> H2j.
+  reflexivity.
+Qed.
+
 (** [] *)
 
 (** So much for injectivity of constructors.  What about disjointness?
@@ -348,7 +366,9 @@ Example discriminate_ex3 :
     x :: y :: l = [] ->
     x = z.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X x y z l ll H.
+  discriminate H.
+Qed.
 (** [] *)
 
 (** The injectivity of constructors allows us to reason that
