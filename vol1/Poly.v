@@ -140,7 +140,7 @@ Example test_repeat2 :
 Proof. reflexivity.  Qed.
 
 
-(** **** Exercise: 2 stars, standard (mumble_grumble)  
+(** **** Exercise: 2 stars, standard (mumble_grumble)
 
     Consider the following two inductively defined types. *)
 
@@ -398,7 +398,7 @@ Definition list123''' := [1; 2; 3].
 (* ----------------------------------------------------------------- *)
 (** *** Exercises *)
 
-(** **** Exercise: 2 stars, standard, optional (poly_exercises)  
+(** **** Exercise: 2 stars, standard, optional (poly_exercises)
 
     Here are a few simple exercises, just like ones in the [Lists]
     chapter, for practice with polymorphism.  Complete the proofs below. *)
@@ -419,7 +419,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, standard, optional (more_poly_exercises)  
+(** **** Exercise: 2 stars, standard, optional (more_poly_exercises)
 
     Here are some slightly more interesting ones... *)
 
@@ -491,7 +491,7 @@ Fixpoint combine {X Y : Type} (lx : list X) (ly : list Y)
   | x :: tx, y :: ty => (x, y) :: (combine tx ty)
   end.
 
-(** **** Exercise: 1 star, standard, optional (combine_checks)  
+(** **** Exercise: 1 star, standard, optional (combine_checks)
 
     Try answering the following questions on paper and
     checking your answers in Coq:
@@ -501,11 +501,11 @@ Fixpoint combine {X Y : Type} (lx : list X) (ly : list Y)
 
         Compute (combine [1;2] [false;false;true;true]).
 
-      print? 
+      print?
 
     [] *)
 
-(** **** Exercise: 2 stars, standard, recommended (split)  
+(** **** Exercise: 2 stars, standard, recommended (split)
 
     The function [split] is the right inverse of [combine]: it takes a
     list of pairs and returns a pair of lists.  In many functional
@@ -515,13 +515,17 @@ Fixpoint combine {X Y : Type} (lx : list X) (ly : list Y)
     given unit test. *)
 
 Fixpoint split {X Y : Type} (l : list (X*Y))
-               : (list X) * (list Y)
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+  : (list X) * (list Y) :=
+  match l with
+  | nil => (nil, nil)
+  | (x, y) :: r => (x :: fst (split r), y :: snd (split r))
+  end.
+
 
 Example test_split:
   split [(1,false);(2,false)] = ([1;2],[false;false]).
 Proof.
-(* FILL IN HERE *) Admitted.
+  reflexivity. Qed.
 (** [] *)
 
 (* ================================================================= *)
@@ -561,14 +565,17 @@ Proof. reflexivity. Qed.
 Example test_nth_error3 : nth_error [true] 2 = None.
 Proof. reflexivity. Qed.
 
-(** **** Exercise: 1 star, standard, optional (hd_error_poly)  
+(** **** Exercise: 1 star, standard, optional (hd_error_poly)
 
     Complete the definition of a polymorphic version of the
     [hd_error] function from the last chapter. Be sure that it
     passes the unit tests below. *)
 
-Definition hd_error {X : Type} (l : list X) : option X
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition hd_error {X : Type} (l : list X) : option X :=
+  match l with
+  | nil    => None
+  | a :: _ => Some a
+  end.
 
 (** Once again, to force the implicit arguments to be explicit,
     we can use [@] before the name of the function. *)
@@ -576,9 +583,10 @@ Definition hd_error {X : Type} (l : list X) : option X
 Check @hd_error.
 
 Example test_hd_error1 : hd_error [1;2] = Some 1.
- (* FILL IN HERE *) Admitted.
+reflexivity. Qed.
+
 Example test_hd_error2 : hd_error  [[1];[2]]  = Some [1].
- (* FILL IN HERE *) Admitted.
+reflexivity. Qed.
 (** [] *)
 
 (* ################################################################# *)
@@ -689,26 +697,27 @@ Example test_filter2':
   = [ [3]; [4]; [8] ].
 Proof. reflexivity.  Qed.
 
-(** **** Exercise: 2 stars, standard (filter_even_gt7)  
+(** **** Exercise: 2 stars, standard (filter_even_gt7)
 
     Use [filter] (instead of [Fixpoint]) to write a Coq function
     [filter_even_gt7] that takes a list of natural numbers as input
     and returns a list of just those that are even and greater than
     7. *)
 
+Search gt.
+
 Definition filter_even_gt7 (l : list nat) : list nat
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+  := filter (fun a => ((7 <=? a) && evenb a)) l.
 
 Example test_filter_even_gt7_1 :
   filter_even_gt7 [1;2;6;9;10;3;12;8] = [10;12;8].
- (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 
 Example test_filter_even_gt7_2 :
   filter_even_gt7 [5;2;6;19;129] = [].
- (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 (** [] *)
-
-(** **** Exercise: 3 stars, standard (partition)  
+(** **** Exercise: 3 stars, standard (partition)
 
     Use [filter] to write a Coq function [partition]:
 
@@ -774,7 +783,7 @@ Proof. reflexivity.  Qed.
 (* ----------------------------------------------------------------- *)
 (** *** Exercises *)
 
-(** **** Exercise: 3 stars, standard (map_rev)  
+(** **** Exercise: 3 stars, standard (map_rev)
 
     Show that [map] and [rev] commute.  You may need to define an
     auxiliary lemma. *)
@@ -785,7 +794,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, standard, recommended (flat_map)  
+(** **** Exercise: 2 stars, standard, recommended (flat_map)
 
     The function [map] maps a [list X] to a [list Y] using a function
     of type [X -> Y].  We can define a similar function, [flat_map],
@@ -817,7 +826,7 @@ Definition option_map {X Y : Type} (f : X -> Y) (xo : option X)
     | Some x => Some (f x)
   end.
 
-(** **** Exercise: 2 stars, standard, optional (implicit_args)  
+(** **** Exercise: 2 stars, standard, optional (implicit_args)
 
     The definitions and uses of [filter] and [map] use implicit
     arguments in many places.  Replace the curly braces around the
@@ -874,7 +883,7 @@ Example fold_example3 :
   fold app  [[1];[];[2;3];[4]] [] = [1;2;3;4].
 Proof. reflexivity. Qed.
 
-(** **** Exercise: 1 star, advanced (fold_types_different)  
+(** **** Exercise: 1 star, advanced (fold_types_different)
 
     Observe that the type of [fold] is parameterized by _two_ type
     variables, [X] and [Y], and the parameter [f] is a binary operator
@@ -941,7 +950,7 @@ Proof. reflexivity.  Qed.
 
 Module Exercises.
 
-(** **** Exercise: 2 stars, standard (fold_length)  
+(** **** Exercise: 2 stars, standard (fold_length)
 
     Many common functions on lists can be implemented in terms of
     [fold].  For example, here is an alternative definition of [length]: *)
@@ -964,7 +973,7 @@ Proof.
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, standard (fold_map)  
+(** **** Exercise: 3 stars, standard (fold_map)
 
     We can also define [map] in terms of [fold].  Finish [fold_map]
     below. *)
@@ -983,7 +992,7 @@ Definition fold_map {X Y: Type} (f: X -> Y) (l: list X) : list Y
 Definition manual_grade_for_fold_map : option (nat*string) := None.
 (** [] *)
 
-(** **** Exercise: 2 stars, advanced (currying)  
+(** **** Exercise: 2 stars, advanced (currying)
 
     In Coq, a function [f : A -> B -> C] really has the type [A
     -> (B -> C)].  That is, if you give [f] a value of type [A], it
@@ -1036,7 +1045,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, advanced (nth_error_informal)  
+(** **** Exercise: 2 stars, advanced (nth_error_informal)
 
     Recall the definition of the [nth_error] function:
 
