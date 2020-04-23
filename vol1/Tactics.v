@@ -442,8 +442,38 @@ Theorem plus_n_n_injective : forall n m,
      n + n = m + m ->
      n = m.
 Proof.
-  intros n. induction n as [| n'].
-  (* FILL IN HERE *) Admitted.
+  intros n. induction n as [| nn Hn]. {
+    destruct m. {
+      reflexivity.
+    } {
+      discriminate.
+    }
+  } {
+    destruct m. {
+      intros H.
+      discriminate.
+    } {
+      intros H.
+      simpl in H.
+      replace (nn + S nn) with (S nn + nn) in H. {
+        replace (m + S m) with (S m + m) in H. {
+          simpl in H.
+          injection H. intros Hnm.
+          rewrite -> Hn with m. {
+            reflexivity.
+          } {
+            apply Hnm.
+          }
+        } {
+          rewrite -> plus_comm. reflexivity.
+        }
+      } {
+        rewrite -> plus_comm. reflexivity.
+      }
+    }
+  }
+Qed.
+
 (** [] *)
 
 (* ################################################################# *)
@@ -915,7 +945,18 @@ Theorem combine_split : forall X Y (l : list (X * Y)) l1 l2,
   split l = (l1, l2) ->
   combine l1 l2 = l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X Y.
+  induction l as [|lh lt Hl]. {
+    intros l1 l2 eq.
+    simpl in eq.
+    injection eq. intros l2e l1e.
+    rewrite <- l1e. rewrite <- l2e.
+    simpl.
+    reflexivity.
+  } {
+Abort.
+
+
 (** [] *)
 
 (** The [eqn:] part of the [destruct] tactic is optional: We've chosen
