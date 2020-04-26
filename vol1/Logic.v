@@ -155,8 +155,26 @@ Qed.
 Example and_exercise :
   forall n m : nat, n + m = 0 -> n = 0 /\ m = 0.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros n m nm.
+  split. {
+    destruct n. {
+      reflexivity.
+    } {
+      simpl in nm.
+      discriminate nm.
+    }
+  } {
+    destruct m. {
+      reflexivity.
+    } {
+      rewrite -> plus_comm in nm.
+      simpl in nm.
+      discriminate nm.
+    }
+  }
+Qed.
+
+  (** [] *)
 
 (** So much for proving conjunctive statements.  To go in the other
     direction -- i.e., to _use_ a conjunctive hypothesis to help prove
@@ -230,7 +248,10 @@ Proof.
 Lemma proj2 : forall P Q : Prop,
   P /\ Q -> Q.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros P Q [HP HQ].
+  apply HQ.
+Qed.
+
 (** [] *)
 
 (** Finally, we sometimes need to rearrange the order of conjunctions
@@ -257,7 +278,13 @@ Theorem and_assoc : forall P Q R : Prop,
   P /\ (Q /\ R) -> (P /\ Q) /\ R.
 Proof.
   intros P Q R [HP [HQ HR]].
-  (* FILL IN HERE *) Admitted.
+  split.
+  - split.
+    + apply HP.
+    + apply HQ.
+  - apply HR.
+Qed.
+
 (** [] *)
 
 (** By the way, the infix notation [/\] is actually just syntactic
@@ -305,6 +332,7 @@ Proof.
   apply HA.
 Qed.
 
+
 (** ... and here is a slightly more interesting example requiring both
     [left] and [right]: *)
 
@@ -321,14 +349,29 @@ Qed.
 Lemma mult_eq_0 :
   forall n m, n * m = 0 -> n = 0 \/ m = 0.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m H.
+  destruct n. {
+    left. reflexivity.
+  } {
+    destruct m. {
+      right. reflexivity.
+    } {
+      simpl in H.
+      discriminate H.
+    }
+  }
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 1 star, standard (or_commut)  *)
 Theorem or_commut : forall P Q : Prop,
   P \/ Q  -> Q \/ P.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros P Q [HP | HQ].
+  - right. apply HP.
+  - left. apply HQ.
+Qed.
 (** [] *)
 
 (* ================================================================= *)
@@ -386,7 +429,12 @@ Proof.
 Fact not_implies_our_not : forall (P:Prop),
   ~ P -> (forall (Q:Prop), P -> Q).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros P notP.
+  intros Q justP.
+  apply notP in justP.
+  destruct justP.
+Qed.
+
 (** [] *)
 
 (** Inequality is a frequent enough example of negated statement
@@ -425,7 +473,7 @@ Qed.
 Theorem not_False :
   ~ False.
 Proof.
-  unfold not. intros H. destruct H. Qed.
+  unfold not. intros H. apply H. Qed.
 
 Theorem contradiction_implies_anything : forall P Q : Prop,
   (P /\ ~P) -> Q.
@@ -456,14 +504,29 @@ Definition manual_grade_for_double_neg_inf : option (nat*string) := None.
 Theorem contrapositive : forall (P Q : Prop),
   (P -> Q) -> (~Q -> ~P).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros P Q H notQ.
+  unfold not in notQ.
+  unfold not.
+  intros justP.
+  apply H in justP.
+  apply notQ in justP.
+  apply justP.
+Qed.
+
+
 (** [] *)
 
 (** **** Exercise: 1 star, standard (not_both_true_and_false)  *)
 Theorem not_both_true_and_false : forall P : Prop,
   ~ (P /\ ~P).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros P.
+  unfold not.
+  intros [justP notP].
+  apply notP in justP.
+  apply justP.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 1 star, advanced (informal_not_PNP)
@@ -574,19 +637,68 @@ Qed.
 Theorem iff_refl : forall P : Prop,
   P <-> P.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros P.
+  split.
+  - intros justP. apply justP.
+  - intros justP. apply justP.
+Qed.
 
 Theorem iff_trans : forall P Q R : Prop,
   (P <-> Q) -> (Q <-> R) -> (P <-> R).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros P Q R pq qr.
+  split. {
+    intros p.
+    apply pq in p.
+    apply qr in p.
+    apply p.
+  } {
+    intros r.
+    apply qr in r.
+    apply pq in r.
+    apply r.
+  }
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, standard (or_distributes_over_and)  *)
 Theorem or_distributes_over_and : forall P Q R : Prop,
   P \/ (Q /\ R) <-> (P \/ Q) /\ (P \/ R).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros P Q R.
+  split. {
+    intros [p | qr]. {
+      split. {
+        left. apply p.
+      } {
+        left. apply p.
+      }
+    } {
+      destruct qr as [q r].
+      split. {
+        right. apply q.
+      } {
+        right. apply r.
+      }
+    }
+  } {
+    intros [pq pr].
+    destruct pq as [p | q]. {
+      left. apply p.
+    } {
+      destruct pr as [p | r]. {
+        left. apply p.
+      } {
+        right.
+        split.
+        - apply q.
+        - apply r.
+      }
+    }
+  }
+Qed.
+
 (** [] *)
 
 (** Some of Coq's tactics treat [iff] statements specially, avoiding
@@ -687,7 +799,13 @@ Proof.
 Theorem dist_not_exists : forall (X:Type) (P : X -> Prop),
   (forall x, P x) -> ~ (exists x, ~ P x).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X P H.
+  unfold not.
+  intros [x xP].
+  apply xP in H.
+  apply H.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 2 stars, standard (dist_exists_or)
@@ -698,7 +816,30 @@ Proof.
 Theorem dist_exists_or : forall (X:Type) (P Q : X -> Prop),
   (exists x, P x \/ Q x) <-> (exists x, P x) \/ (exists x, Q x).
 Proof.
-   (* FILL IN HERE *) Admitted.
+  intros X P Q.
+  split. {
+    intros [x [Px | Qx]]. {
+      left.
+      exists x.
+      apply Px.
+    } {
+      right.
+      exists x.
+      apply Qx.
+    }
+  } {
+    intros [[x Px] | [x Qx]]. {
+      exists x.
+      left.
+      apply Px.
+    } {
+      exists x.
+      right.
+      apply Qx.
+    }
+  }
+Qed.
+
 (** [] *)
 
 (* ################################################################# *)
@@ -782,7 +923,43 @@ Lemma In_map_iff :
     In y (map f l) <->
     exists x, f x = y /\ In x l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros A B f l y.
+  split. {
+    induction l as [|h t Ht]. {
+      intros H.
+      simpl in H.
+      destruct H.
+    } {
+      simpl.
+      intros [fh | yIn_t]. {
+        exists h.
+        split.
+        - apply fh.
+        - left. reflexivity.
+      } {
+        destruct (Ht yIn_t) as [x [fxy Inxt]].
+        exists x.
+        split.
+        - apply fxy.
+        - right. apply Inxt.
+      }
+    }
+  } {
+    intros [x [fxy Inxl]].
+    induction l as [|h t]. {
+      simpl.
+      destruct Inxl.
+    } {
+      rewrite <- fxy.
+      simpl.
+      rewrite -> fxy.
+      simpl in Inxl.
+      destruct Inxl as [hx | Inxt].
+      - left. rewrite <- hx in fxy. apply fxy.
+      - right. apply IHt. apply Inxt.
+    }
+  }
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard (In_app_iff)  *)
@@ -993,6 +1170,7 @@ Lemma in_not_nil_42_take4 :
   forall l : list nat, In 42 l -> l <> [].
 Proof.
   intros l H.
+  Check in_not_nil.
   apply (in_not_nil nat 42).
   apply H.
 Qed.
@@ -1021,7 +1199,9 @@ Example lemma_application_ex :
     n = 0.
 Proof.
   intros n ns H.
-  destruct (proj1 _ _ (In_map_iff _ _ _ _ _) H)
+  Check proj1.
+  Check In_map_iff.
+  destruct (proj1 _ _ (In_map_iff nat nat _ ns n) H)
            as [m [Hm _]].
   rewrite mult_0_r in Hm. rewrite <- Hm. reflexivity.
 Qed.
@@ -1155,8 +1335,89 @@ Definition tr_rev {X} (l : list X) : list X :=
     call); a decent compiler will generate very efficient code in this
     case.  Prove that the two definitions are indeed equivalent. *)
 
+Lemma rev_append_prep : forall (X: Type) (l1 l2 : list X),
+    rev_append l2 l1 = rev_append l2 [] ++ l1 .
+Proof.
+Admitted.
+  (* intros X. *)
+  (* induction l1 as [|h1 t1 I1]. { *)
+  (*   intros l2. simpl.  *)
+  (*   Search "++". *)
+  (*   rewrite -> app_nil_r. *)
+  (*   reflexivity. *)
+  (* } { *)
+  (*   simpl. *)
+  (*   induction l2 as [|h2 t2 I2]. { *)
+  (*     simpl. reflexivity. *)
+  (*   } { *)
+  (*     simpl. *)
+  (*     Search "++". *)
+  (*   } *)
+  (* } *)
+
+
+Lemma tr_rev_app_distr : forall (X: Type) (l1 l2 : list X),
+    tr_rev (l1 ++ l2) = tr_rev l2 ++ tr_rev l1.
+Proof.
+  intros X.
+  induction l1 as [|h1 t1 I1]. {
+    unfold tr_rev.
+    simpl.
+    intros l2.
+    Search "++".
+    rewrite -> app_nil_r.
+    reflexivity.
+  } {
+    destruct l2 as [|h2 t2]. {
+      unfold tr_rev.
+      simpl.
+      rewrite -> app_nil_r.
+      reflexivity.
+    } {
+      unfold tr_rev in I1.
+      unfold tr_rev.
+      simpl.
+      rewrite -> rev_append_prep.
+      simpl.
+      rewrite -> (I1 (h2 :: t2)).
+      simpl.
+      rewrite -> rev_append_prep.
+      rewrite -> (rev_append_prep X [h1] t1).
+      Search "++".
+      rewrite app_assoc.
+      reflexivity.
+    }
+  }
+Qed.
+
 Lemma tr_rev_correct : forall X, @tr_rev X = @rev X.
-(* FILL IN HERE *) Admitted.
+Proof.
+  intros X.
+  apply functional_extensionality.
+  induction x as [|h t I]. {
+    unfold tr_rev.
+    simpl.
+    reflexivity.
+  } {
+    simpl.
+    rewrite <- I.
+    unfold tr_rev.
+    fold (@tr_rev X).
+    assert (H: [h] = tr_rev [h]). {
+      reflexivity.
+    }
+    rewrite -> H.
+    replace (rev_append t [ ]) with (tr_rev t). {
+      Search tr_rev.
+      rewrite <- tr_rev_app_distr.
+      unfold tr_rev.
+      simpl.
+      reflexivity.
+    } {
+      reflexivity.
+    }
+  }
+Qed.
 (** [] *)
 
 (* ================================================================= *)
