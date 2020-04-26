@@ -1809,6 +1809,8 @@ Qed.
 Theorem excluded_middle_irrefutable: forall (P:Prop),
   ~ ~ (P \/ ~ P).
 Proof.
+  Search or.
+  (* Try to replace ~(P \/ ~P) with something here. *)
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
