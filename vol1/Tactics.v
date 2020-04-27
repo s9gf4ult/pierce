@@ -65,7 +65,7 @@ Proof.
   intros n m eq1 eq2.
   apply eq2. apply eq1.  Qed.
 
-(** **** Exercise: 2 stars, standard, optional (silly_ex)  
+(** **** Exercise: 2 stars, standard, optional (silly_ex)
 
     Complete the following proof without using [simpl]. *)
 
@@ -74,7 +74,12 @@ Theorem silly_ex :
      oddb 3 = true ->
      evenb 4 = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros H o3.
+  Search evenb.
+  unfold oddb in H.
+  Search negb.
+Admitted.
+
 (** [] *)
 
 (** To use the [apply] tactic, the (conclusion of the) fact
@@ -97,7 +102,7 @@ Proof.
              simplification first, if needed.) *)
   apply H.  Qed.
 
-(** **** Exercise: 3 stars, standard (apply_exercise1)  
+(** **** Exercise: 3 stars, standard (apply_exercise1)
 
     (_Hint_: You can use [apply] with previously defined lemmas, not
     just hypotheses in the context.  Remember that [Search] is
@@ -107,16 +112,22 @@ Theorem rev_exercise1 : forall (l l' : list nat),
      l = rev l' ->
      l' = rev l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros l l' H.
+  rewrite -> H.
+  Search rev.
+  rewrite -> rev_involutive.
+  reflexivity.
+Qed.
+
 (** [] *)
 
-(** **** Exercise: 1 star, standard, optional (apply_rewrite)  
+(** **** Exercise: 1 star, standard, optional (apply_rewrite)
 
     Briefly explain the difference between the tactics [apply] and
     [rewrite].  What are the situations where both can usefully be
     applied? *)
 
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
@@ -176,7 +187,12 @@ Example trans_eq_exercise : forall (n m o p : nat),
      (n + p) = m ->
      (n + p) = (minustwo o).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m o p mo npm.
+  apply trans_eq with m.
+  - apply npm.
+  - apply mo.
+Qed.
+
 (** [] *)
 
 (* ################################################################# *)
@@ -273,7 +289,12 @@ Example injection_ex3 : forall (X : Type) (x y z : X) (l j : list X),
   y :: l = x :: j ->
   x = y.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X x y z l j H1 H2.
+  injection H2 as H2j.
+  rewrite -> H2j.
+  reflexivity.
+Qed.
+
 (** [] *)
 
 (** So much for injectivity of constructors.  What about disjointness?
@@ -345,7 +366,9 @@ Example discriminate_ex3 :
     x :: y :: l = [] ->
     x = z.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X x y z l ll H.
+  discriminate H.
+Qed.
 (** [] *)
 
 (** The injectivity of constructors allows us to reason that
@@ -410,7 +433,7 @@ Proof.
     but in some situations the forward style can be easier to think
     about.  *)
 
-(** **** Exercise: 3 stars, standard, recommended (plus_n_n_injective)  
+(** **** Exercise: 3 stars, standard, recommended (plus_n_n_injective)
 
     Practice using "in" variants in this proof.  (Hint: use
     [plus_n_Sm].) *)
@@ -419,8 +442,38 @@ Theorem plus_n_n_injective : forall n m,
      n + n = m + m ->
      n = m.
 Proof.
-  intros n. induction n as [| n'].
-  (* FILL IN HERE *) Admitted.
+  intros n. induction n as [| nn Hn]. {
+    destruct m. {
+      reflexivity.
+    } {
+      discriminate.
+    }
+  } {
+    destruct m. {
+      intros H.
+      discriminate.
+    } {
+      intros H.
+      simpl in H.
+      replace (nn + S nn) with (S nn + nn) in H. {
+        replace (m + S m) with (S m + m) in H. {
+          simpl in H.
+          injection H. intros Hnm.
+          rewrite -> Hn with m. {
+            reflexivity.
+          } {
+            apply Hnm.
+          }
+        } {
+          rewrite -> plus_comm. reflexivity.
+        }
+      } {
+        rewrite -> plus_comm. reflexivity.
+      }
+    }
+  }
+Qed.
+
 (** [] *)
 
 (* ################################################################# *)
@@ -580,7 +633,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, advanced (eqb_true_informal)  
+(** **** Exercise: 2 stars, advanced (eqb_true_informal)
 
     Give a careful informal proof of [eqb_true], being as explicit
     as possible about quantifiers. *)
@@ -699,7 +752,7 @@ Proof.
   rewrite H'. reflexivity.
 Qed.
 
-(** **** Exercise: 3 stars, standard, recommended (gen_dep_practice)  
+(** **** Exercise: 3 stars, standard, recommended (gen_dep_practice)
 
     Prove this by induction on [l]. *)
 
@@ -870,7 +923,7 @@ Proof.
     in which all occurrences of [e] (in the goal and in the context)
     are replaced by [c]. *)
 
-(** **** Exercise: 3 stars, standard, optional (combine_split)  
+(** **** Exercise: 3 stars, standard, optional (combine_split)
 
     Here is an implementation of the [split] function mentioned in
     chapter [Poly]: *)
@@ -892,7 +945,18 @@ Theorem combine_split : forall X Y (l : list (X * Y)) l1 l2,
   split l = (l1, l2) ->
   combine l1 l2 = l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X Y.
+  induction l as [|lh lt Hl]. {
+    intros l1 l2 eq.
+    simpl in eq.
+    injection eq. intros l2e l1e.
+    rewrite <- l1e. rewrite <- l2e.
+    simpl.
+    reflexivity.
+  } {
+Abort.
+
+
 (** [] *)
 
 (** The [eqn:] part of the [destruct] tactic is optional: We've chosen
@@ -902,7 +966,7 @@ Proof.
     When [destruct]ing compound expressions, however, the information
     recorded by the [eqn:] can actually be critical: if we leave it
     out, then [destruct] can sometimes erase information we need to
-    complete a proof. 
+    complete a proof.
 
     For example, suppose we define a function [sillyfun1] like
     this: *)
@@ -1047,7 +1111,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, advanced, optional (eqb_sym_informal)  
+(** **** Exercise: 3 stars, advanced, optional (eqb_sym_informal)
 
     Give an informal proof of this lemma that corresponds to your
     formal proof above:
@@ -1055,7 +1119,7 @@ Proof.
    Theorem: For any [nat]s [n] [m], [(n =? m) = (m =? n)].
 
    Proof: *)
-   (* FILL IN HERE 
+   (* FILL IN HERE
 
     [] *)
 
@@ -1068,7 +1132,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, advanced (split_combine)  
+(** **** Exercise: 3 stars, advanced (split_combine)
 
     We proved, in an exercise above, that for all lists of pairs,
     [combine] is the inverse of [split].  How would you formalize the
@@ -1095,7 +1159,7 @@ Proof.
 Definition manual_grade_for_split_combine : option (nat*string) := None.
 (** [] *)
 
-(** **** Exercise: 3 stars, advanced (filter_exercise)  
+(** **** Exercise: 3 stars, advanced (filter_exercise)
 
     This one is a bit challenging.  Pay attention to the form of your
     induction hypothesis. *)
@@ -1108,7 +1172,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 4 stars, advanced, recommended (forall_exists_challenge)  
+(** **** Exercise: 4 stars, advanced, recommended (forall_exists_challenge)
 
     Define two recursive [Fixpoints], [forallb] and [existsb].  The
     first checks whether every element in a list satisfies a given

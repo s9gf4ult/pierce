@@ -645,16 +645,24 @@ Qed.
 Theorem plus_ble_compat_l : forall n m p : nat,
   n <=? m = true -> (p + n) <=? (p + m) = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m p.
+  induction p. {
+    simpl. intros H. rewrite -> H. reflexivity.
+  } {
+    simpl. apply IHp.
+  }
+Qed.
 
 Theorem S_nbeq_0 : forall n:nat,
   (S n) =? 0 = false.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  simpl. intros n. reflexivity.
+Qed.
 
 Theorem mult_1_l : forall n:nat, 1 * n = n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n. simpl. rewrite <- plus_n_O. reflexivity.
+Qed.
 
 Theorem all3_spec : forall b c : bool,
     orb
@@ -663,17 +671,106 @@ Theorem all3_spec : forall b c : bool,
                (negb c))
   = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros [] [].
+  - simpl. reflexivity.
+  - simpl. reflexivity.
+  - simpl. reflexivity.
+  - simpl. reflexivity.
+Qed.
+
+Theorem plus_swap_inner: forall a b c d : nat,
+    (a + b) + (c + d) = (a + c) + (b + d).
+Proof.
+  intros a b c d.
+  replace ((a + b) + (c + d)) with (a + (b + (c + d))). {
+    replace (a + (b + (c + d))) with (a + ((b + c) + d)). {
+      replace (b + c) with (c + b). {
+        replace (c + b + d) with (c + (b + d)). {
+          rewrite <- plus_assoc. reflexivity.
+        } {
+          rewrite <- plus_assoc. reflexivity.
+        }
+      } {
+        rewrite -> plus_comm. reflexivity.
+      }
+    } {
+      replace (b + c + d) with (b + (c + d)). {
+        reflexivity.
+      } {
+        rewrite -> plus_assoc. reflexivity.
+      }
+    }
+  } {
+    rewrite -> plus_assoc. reflexivity.
+  }
+Qed.
 
 Theorem mult_plus_distr_r : forall n m p : nat,
   (n + m) * p = (n * p) + (m * p).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction p. {
+    simpl.
+    replace (n * 0) with 0. {
+      replace (m * 0) with 0. {
+        rewrite -> mult_0_r.
+        reflexivity.
+      } {
+        rewrite -> mult_0_r.
+        reflexivity.
+      }
+    } {
+      rewrite -> mult_0_r.
+      reflexivity.
+    }
+  } {
+    replace ((n + m) * S p) with (S p * (n + m)). {
+      simpl.
+      replace (n * S p) with (S p * n). {
+        replace (m * S p) with (S p * m). {
+          simpl.
+          replace (p * (n + m)) with ((n + m) * p). {
+            rewrite -> IHp.
+            replace (p * m) with (m * p). {
+              replace (p * n) with (n * p). {
+                rewrite -> plus_swap_inner. reflexivity.
+              } {
+                rewrite -> mult_comm. reflexivity.
+              }
+            } {
+              rewrite -> mult_comm. reflexivity.
+            }
+          } {
+            rewrite -> mult_comm. reflexivity.
+          }
+        } {
+          rewrite -> mult_comm. reflexivity.
+        }
+      } {
+        rewrite -> mult_comm. reflexivity.
+      }
+    } {
+      rewrite -> mult_comm. reflexivity.
+    }
+  }
+Qed.
+
 
 Theorem mult_assoc : forall n m p : nat,
   n * (m * p) = (n * m) * p.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction n. {
+    simpl.
+    intros m p.
+    reflexivity.
+  } {
+    simpl.
+    intros m p.
+    rewrite -> IHn.
+    rewrite <- mult_plus_distr_r.
+    reflexivity.
+  }
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (eqb_refl)
@@ -748,7 +845,12 @@ Qed.
     definitions to make the property easier to prove, feel free to
     do so! *)
 
-(* FILL IN HERE *)
+(* Theorem bin_to_nat_commutes : forall b : bin, *)
+(*     bin_to_nat (incr b) = S (bin_to_nat b). *)
+(* Proof.  *)
+(*   induction b. { *)
+(*     simpl.  *)
+(*   } *)
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_binary_commute : option (nat*string) := None.
