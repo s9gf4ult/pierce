@@ -1806,19 +1806,9 @@ Qed.
     contradiction.  But since we can't, it is safe to add [P \/ ~P] as
     an axiom. *)
 
-Lemma not_not: forall (A : Prop),
-    A <-> ~~A.
-Proof.
-  intros A.
-  split. {
-    intros a.
-    unfold not.
-    intros H.
-    apply (H a).
-  } {
-    unfold not.
-    intros H.
-Admitted.
+
+Axiom not_not: forall (A : Prop),
+    ~~A -> A.
 
 Theorem not_excluded_middle: forall (A : Prop),
     (~ (A \/ ~A)) <-> (~A /\ A).
@@ -1833,7 +1823,7 @@ Proof.
       apply H.
       left. apply a.
     } {
-      rewrite -> not_not.
+      apply not_not.
       unfold not.
       intros notA.
       unfold not in H.
