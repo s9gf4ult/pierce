@@ -299,7 +299,11 @@ Theorem one_not_even' : ~ even 1.
 Theorem SSSSev__even : forall n,
   even (S (S (S (S n)))) -> even n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n H.
+  inversion H.
+  inversion H1.
+  apply H3.
+Qed.
 (** [] *)
 
 (** **** Exercise: 1 star, standard (even5_nonsense)
@@ -309,8 +313,11 @@ Proof.
 Theorem even5_nonsense :
   even 5 -> 2 + 2 = 9.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros H.
+  inversion H.
+  inversion H1.
+  inversion H3.
+Qed.
 
 (** The [inversion] tactic does quite a bit of work. When
     applied to equalities, as a special case, it does the work of both
@@ -459,7 +466,16 @@ Qed.
 (** **** Exercise: 2 stars, standard (ev_sum)  *)
 Theorem ev_sum : forall n m, even n -> even m -> even (n + m).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m en em.
+  induction en as [|nn en I]. {
+    simpl. apply em.
+  } {
+    simpl.
+    Search even.
+    apply ev_SS.
+    apply I.
+  }
+Qed.
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced, optional (even'_ev)
@@ -479,7 +495,37 @@ Inductive even' : nat -> Prop :=
 
 Theorem even'_ev : forall n, even' n <-> even n.
 Proof.
- (* FILL IN HERE *) Admitted.
+  intros n .
+  split. {
+    intros H.
+    Print even'.
+    induction H.  {
+      apply ev_0.
+    } {
+      Print even.
+      apply (ev_SS 0 ev_0).
+    } {
+      Search even "+".
+      apply ev_sum.
+      apply IHeven'1.
+      apply IHeven'2.
+    }
+  } {
+    intros H.
+    induction H. {
+      apply even'_0.
+    } {
+      replace (S (S n)) with (2 + n). {
+        apply even'_sum.
+        apply even'_2.
+        apply IHeven.
+      } {
+        reflexivity.
+      }
+    }
+  }
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced, recommended (ev_ev__ev)
@@ -490,7 +536,17 @@ Proof.
 Theorem ev_ev__ev : forall n m,
   even (n+m) -> even n -> even m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m NM N.
+  induction N. {
+    simpl in NM. apply NM.
+  } {
+    simpl in NM.
+    Search even.
+    apply evSS_ev in NM.
+    apply (IHN NM).
+  }
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, standard, optional (ev_plus_plus)
@@ -624,7 +680,27 @@ Inductive next_even : nat -> nat -> Prop :=
 
 Lemma le_trans : forall m n o, m <= n -> n <= o -> m <= o.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros m n o H P.
+  Print "<=".
+  inversion H as [mn|mm Nmm HS]. {
+    apply P.
+  } {
+    inversion P as [no|oo Noo PS]. {
+      rewrite -> no in H.
+      apply H.
+    } {
+      apply le_S.
+
+    }
+  }
+  apply P.
+  Print "<=".
+
+  inversion P. {
+  } {
+    rewrite <- H1 in H.
+    rewrite <- H3 in P.
+  }
 
 Theorem O_le_n : forall n,
   0 <= n.
