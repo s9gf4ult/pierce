@@ -682,45 +682,100 @@ Lemma le_trans : forall m n o, m <= n -> n <= o -> m <= o.
 Proof.
   intros m n o H P.
   Print "<=".
-  inversion H as [mn|mm Nmm HS]. {
+  inversion H as [mn|nn Hnn eqNN]. {
     apply P.
   } {
-    inversion P as [no|oo Noo PS]. {
+    inversion P as [no|oo Hoo eqOO]. {
       rewrite -> no in H.
       apply H.
     } {
       apply le_S.
+      rewrite <- eqNN in Hoo.
+Admitted.
 
-    }
-  }
-  apply P.
-  Print "<=".
-
-  inversion P. {
-  } {
-    rewrite <- H1 in H.
-    rewrite <- H3 in P.
-  }
 
 Theorem O_le_n : forall n,
   0 <= n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n.
+  induction n. {
+    Print "<=".
+    apply le_n.
+  } {
+    apply le_S.
+    apply IHn.
+  }
+Qed.
 
 Theorem n_le_m__Sn_le_Sm : forall n m,
   n <= m -> S n <= S m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  destruct n. {
+    induction m. {
+      intros P.
+      apply le_n.
+    } {
+      intros P.
+      apply le_S.
+      apply IHm.
+      apply O_le_n.
+    }
+  } {
+    induction m. {
+      intros P.
+      inversion P.
+    } {
+      intros P.
+      inversion P. {
+        apply le_n.
+      } {
+        apply IHm in H0.
+        apply le_S.
+        apply H0.
+      }
+    }
+  }
+Qed.
 
 Theorem Sn_le_Sm__n_le_m : forall n m,
   S n <= S m -> n <= m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  destruct n. {
+    intros m P.
+    apply O_le_n.
+  } {
+    induction m. {
+      intros P.
+      inversion P. {
+        inversion H0.
+      }
+    } {
+      intros P.
+      inversion P. {
+        apply le_n.
+      } {
+        apply le_S.
+        apply IHm.
+        apply H0.
+      }
+    }
+  }
+Qed.
 
 Theorem le_plus_l : forall a b,
   a <= a + b.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction a. {
+    intros b.
+    simpl.
+    apply O_le_n.
+  } {
+    intros b.
+    simpl.
+    apply n_le_m__Sn_le_Sm.
+    apply IHa.
+  }
+Qed.
 
 Theorem plus_lt : forall n1 n2 m,
   n1 + n2 < m ->
@@ -803,12 +858,24 @@ Definition manual_grade_for_R_provability : option (nat*string) := None.
     Figure out which function; then state and prove this equivalence
     in Coq? *)
 
-Definition fR : nat -> nat -> nat
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition fR : nat -> nat -> nat := plus.
 
 Theorem R_equiv_fR : forall m n o, R m n o <-> fR m n = o.
 Proof.
-(* FILL IN HERE *) Admitted.
+  Admitted.
+  (* split. { *)
+  (*   intros R. *)
+  (*   unfold fR. *)
+  (*   induction m. { *)
+  (*     inversion R. { *)
+  (*       reflexivity.  *)
+  (*     } { *)
+
+  (*     } *)
+  (*   } *)
+
+  (* } *)
+
 (** [] *)
 
 End R.
@@ -1517,7 +1584,28 @@ Qed.
 (** **** Exercise: 2 stars, standard, recommended (reflect_iff)  *)
 Theorem reflect_iff : forall P b, reflect P b -> (P <-> b = true).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros P b R.
+  destruct b. {
+    split. {
+      intros p.
+      reflexivity.
+    } {
+      intros i.
+      inversion R.
+      apply H.
+    }
+  } {
+    split. {
+      intros p.
+      inversion R.
+      destruct (H p).
+    } {
+      intros cont.
+      discriminate cont.
+    }
+  }
+Qed.
+
 (** [] *)
 
 (** The advantage of [reflect] over the normal "if and only if"

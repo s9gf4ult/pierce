@@ -56,6 +56,8 @@ Import ListNotations.
 Definition eqb_string (x y : string) : bool :=
   if string_dec x y then true else false.
 
+Check string_dec.
+
 (** (The function [string_dec] comes from Coq's string library.
     If you check the result type of [string_dec], you'll see that it
     does not actually return a [bool], but rather a type that looks
@@ -203,17 +205,21 @@ Proof. reflexivity. Qed.
 (** (Some of the proofs require the functional extensionality axiom,
     which is discussed in the [Logic] chapter.) *)
 
-(** **** Exercise: 1 star, standard, optional (t_apply_empty)  
+(** **** Exercise: 1 star, standard, optional (t_apply_empty)
 
     First, the empty map returns its default element for all keys: *)
 
 Lemma t_apply_empty : forall (A : Type) (x : string) (v : A),
     (_ !-> v) x = v.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold t_empty.
+  intros A s v.
+  reflexivity.
+Qed.
+
 (** [] *)
 
-(** **** Exercise: 2 stars, standard, optional (t_update_eq)  
+(** **** Exercise: 2 stars, standard, optional (t_update_eq)
 
     Next, if we update a map [m] at a key [x] with a new value [v]
     and then look up [x] in the map resulting from the [update], we
@@ -222,10 +228,15 @@ Proof.
 Lemma t_update_eq : forall (A : Type) (m : total_map A) x v,
     (x !-> v ; m) x = v.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros A m x v.
+  unfold t_update.
+  rewrite <- eqb_string_refl.
+  reflexivity.
+Qed.
+
 (** [] *)
 
-(** **** Exercise: 2 stars, standard, optional (t_update_neq)  
+(** **** Exercise: 2 stars, standard, optional (t_update_neq)
 
     On the other hand, if we update a map [m] at a key [x1] and then
     look up a _different_ key [x2] in the resulting map, we get the
@@ -238,7 +249,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, standard, optional (t_update_shadow)  
+(** **** Exercise: 2 stars, standard, optional (t_update_shadow)
 
     If we update a map [m] at a key [x] with a value [v1] and then
     update again with the same key [x] and another value [v2], the
@@ -257,15 +268,29 @@ Proof.
     by proving a fundamental _reflection lemma_ relating the equality
     proposition on [id]s with the boolean function [eqb_id]. *)
 
-(** **** Exercise: 2 stars, standard, optional (eqb_stringP)  
+(** **** Exercise: 2 stars, standard, optional (eqb_stringP)
 
     Use the proof of [eqbP] in chapter [IndProp] as a template to
     prove the following: *)
 
+Print reflect.
+
 Lemma eqb_stringP : forall x y : string,
     reflect (x = y) (eqb_string x y).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros x y.
+  destruct (eqb_string x y) eqn:e. {
+    apply ReflectT.
+    Search eqb_string.
+    rewrite eqb_string_true_iff in e.
+    apply e.
+  } {
+    apply ReflectF.
+    Search eqb_string.
+    apply eqb_string_false_iff.
+    apply e.
+  }
+Qed.
 (** [] *)
 
 (** Now, given [string]s [x1] and [x2], we can use the tactic
@@ -274,7 +299,7 @@ Proof.
     hypotheses about the equality (in the sense of [=]) of [x1]
     and [x2]. *)
 
-(** **** Exercise: 2 stars, standard (t_update_same)  
+(** **** Exercise: 2 stars, standard (t_update_same)
 
     With the example in chapter [IndProp] as a template, use
     [eqb_stringP] to prove the following theorem, which states that
@@ -287,7 +312,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, standard, recommended (t_update_permute)  
+(** **** Exercise: 3 stars, standard, recommended (t_update_permute)
 
     Use [eqb_stringP] to prove one final property of the [update]
     function: If we update a map [m] at two distinct keys, it doesn't
