@@ -142,7 +142,7 @@ Qed.
 
 (** At any given moment, Coq has constructed a term with a
     "hole" (indicated by [?Goal] here, and so on), and it knows what
-    type of evidence is needed to fill this hole. 
+    type of evidence is needed to fill this hole.
 
     Each hole corresponds to a subgoal, and the proof is
     finished when there are no more subgoals.  At this point, the
@@ -170,16 +170,20 @@ Print ev_4''.
 Print ev_4'''.
 (* ===> ev_4''' =   ev_SS 2 (ev_SS 0 ev_0) : even 4 *)
 
-(** **** Exercise: 2 stars, standard (eight_is_even)  
+(** **** Exercise: 2 stars, standard (eight_is_even)
 
     Give a tactic proof and a proof object showing that [even 8]. *)
 
 Theorem ev_8 : even 8.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  apply ev_SS.
+  apply ev_SS.
+  apply ev_4.
+Qed.
 
-Definition ev_8' : even 8
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Print ev_8.
+
+Definition ev_8' : even 8 := ev_SS 6 (ev_SS 4 ev_4).
 (** [] *)
 
 (* ################################################################# *)
@@ -245,8 +249,8 @@ Check ev_plus4''.
     [forall] where there is no dependency, i.e., no need to give a
     name to the type on the left-hand side of the arrow:
 
-           forall (x:nat), nat 
-        =  forall (_:nat), nat 
+           forall (x:nat), nat
+        =  forall (_:nat), nat
         =  nat -> nat
 *)
 
@@ -377,12 +381,19 @@ Definition and_comm'_aux P Q (H : P /\ Q) : Q /\ P :=
 Definition and_comm' P Q : P /\ Q <-> Q /\ P :=
   conj (and_comm'_aux P Q) (and_comm'_aux Q P).
 
-(** **** Exercise: 2 stars, standard, optional (conj_fact)  
+(** **** Exercise: 2 stars, standard, optional (conj_fact)
 
     Construct a proof object demonstrating the following proposition. *)
 
-Definition conj_fact : forall P Q R, P /\ Q -> Q /\ R -> P /\ R
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Print "<->".
+
+Definition conj_fact : forall (P Q R : Prop), forall (_ : P /\ Q), forall (_ : Q /\ R), P /\ R
+  := fun _ _ _ pq qr =>
+       match pq, qr with
+       | conj p _, conj _ r => conj p r
+       end.
+Print conj_fact.
+
 (** [] *)
 
 (* ================================================================= *)
@@ -406,13 +417,18 @@ End Or.
     Once again, we can also directly write proof objects for theorems
     involving [or], without resorting to tactics. *)
 
-(** **** Exercise: 2 stars, standard, optional (or_commut'')  
+(** **** Exercise: 2 stars, standard, optional (or_commut'')
 
     Try to write down an explicit proof object for [or_commut] (without
     using [Print] to peek at the ones we already defined!). *)
 
-Definition or_comm : forall P Q, P \/ Q -> Q \/ P
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition or_comm : forall P Q, P \/ Q -> Q \/ P :=
+  fun P Q pq =>
+    match pq with
+    | or_introl p => or_intror p
+    | or_intror q => or_introl q
+    end.
+
 (** [] *)
 
 (* ================================================================= *)
@@ -445,15 +461,17 @@ Check ex (fun n => even n).
 
 (** Here's how to define an explicit proof object involving [ex]: *)
 
+
 Definition some_nat_is_even : exists n, even n :=
   ex_intro even 4 (ev_SS 2 (ev_SS 0 ev_0)).
 
-(** **** Exercise: 2 stars, standard, optional (ex_ev_Sn)  
+(** **** Exercise: 2 stars, standard, optional (ex_ev_Sn)
 
     Complete the definition of the following proof object: *)
 
-Definition ex_ev_Sn : ex (fun n => even (S n))
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition ex_ev_Sn : ex (fun n => even (S n)) :=
+  ex_intro _ 1 (ev_SS 0 ev_0).
+
 (** [] *)
 
 (* ================================================================= *)
@@ -536,7 +554,7 @@ Definition four' : 2 + 2 == 1 + 3 :=
 Definition singleton : forall (X:Type) (x:X), []++[x] == x::[]  :=
   fun (X:Type) (x:X) => eq_refl [x].
 
-(** **** Exercise: 2 stars, standard (equality__leibniz_equality)  
+(** **** Exercise: 2 stars, standard (equality__leibniz_equality)
 
     The inductive definition of equality implies _Leibniz equality_:
     what we mean when we say "[x] and [y] are equal" is that every
@@ -545,10 +563,16 @@ Definition singleton : forall (X:Type) (x:X), []++[x] == x::[]  :=
 Lemma equality__leibniz_equality : forall (X : Type) (x y: X),
   x == y -> forall P:X->Prop, P x -> P y.
 Proof.
-(* FILL IN HERE *) Admitted.
+  intros X x y eq P Px.
+  destruct eq.
+  apply Px.
+Qed.
+
+Print equality__leibniz_equality.
+
 (** [] *)
 
-(** **** Exercise: 5 stars, standard, optional (leibniz_equality__equality)  
+(** **** Exercise: 5 stars, standard, optional (leibniz_equality__equality)
 
     Show that, in fact, the inductive definition of equality is
     _equivalent_ to Leibniz equality: *)
@@ -556,7 +580,12 @@ Proof.
 Lemma leibniz_equality__equality : forall (X : Type) (x y: X),
   (forall P:X->Prop, P x -> P y) -> x == y.
 Proof.
-(* FILL IN HERE *) Admitted.
+  intros X x y P.
+  apply P.
+  apply eq_refl.
+Qed.
+
+Print leibniz_equality__equality.
 
 (** [] *)
 
