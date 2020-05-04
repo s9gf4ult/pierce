@@ -98,21 +98,21 @@ Proof.
     - apply le_S. apply le_n. }
   discriminate Nonsense.   Qed.
 
-(** **** Exercise: 2 stars, standard, optional (total_relation_not_partial)  
+(** **** Exercise: 2 stars, standard, optional (total_relation_not_partial)
 
     Show that the [total_relation] defined in (an exercise in)
     [IndProp] is not a partial function. *)
 
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
-(** **** Exercise: 2 stars, standard, optional (empty_relation_partial)  
+(** **** Exercise: 2 stars, standard, optional (empty_relation_partial)
 
     Show that the [empty_relation] defined in (an exercise in)
     [IndProp] is a partial function. *)
 
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
@@ -157,7 +157,7 @@ Proof.
   apply Hnm.
   apply Hmo. Qed.
 
-(** **** Exercise: 2 stars, standard, optional (le_trans_hard_way)  
+(** **** Exercise: 2 stars, standard, optional (le_trans_hard_way)
 
     We can also prove [lt_trans] more laboriously by induction,
     without using [le_trans].  Do this. *)
@@ -168,11 +168,18 @@ Proof.
   (* Prove this by induction on evidence that [m] is less than [o]. *)
   unfold lt. unfold transitive.
   intros n m o Hnm Hmo.
-  induction Hmo as [| m' Hm'o].
-    (* FILL IN HERE *) Admitted.
+  induction Hmo as [| m' Hm'o]. {
+    apply le_S.
+    apply Hnm.
+  } {
+    apply le_S.
+    apply IHHm'o.
+  }
+Qed.
+
 (** [] *)
 
-(** **** Exercise: 2 stars, standard, optional (lt_trans'')  
+(** **** Exercise: 2 stars, standard, optional (lt_trans'')
 
     Prove the same thing again by induction on [o]. *)
 
@@ -181,8 +188,20 @@ Theorem lt_trans'' :
 Proof.
   unfold lt. unfold transitive.
   intros n m o Hnm Hmo.
-  induction o as [| o'].
-  (* FILL IN HERE *) Admitted.
+  induction o as [| o']. {
+    inversion Hmo.
+  } {
+    inversion Hmo. {
+      subst.
+      apply le_S.
+      apply Hnm.
+    } {
+      apply le_S.
+      apply (IHo' H0).
+    }
+  }
+Qed.
+
 (** [] *)
 
 (** The transitivity of [le], in turn, can be used to prove some facts
@@ -200,10 +219,30 @@ Qed.
 Theorem le_S_n : forall n m,
   (S n <= S m) -> (n <= m).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m H.
+  inversion H. {
+    apply le_n.
+  } {
+    subst.
+    induction m. {
+      inversion H1.
+    } {
+      inversion H1. {
+        subst.
+        Search "<=".
+        apply le_succ_diag_r.
+      }
+      apply le_S.
+      apply IHm.
+      apply H1.
+      inversion H1. {
+      }
+    }
+  }
+
 (** [] *)
 
-(** **** Exercise: 2 stars, standard, optional (le_Sn_n_inf)  
+(** **** Exercise: 2 stars, standard, optional (le_Sn_n_inf)
 
     Provide an informal proof of the following theorem:
 
@@ -213,7 +252,7 @@ Proof.
     writing an informal proof without doing the formal proof first.
 
     Proof: *)
-    (* FILL IN HERE 
+    (* FILL IN HERE
 
     [] *)
 

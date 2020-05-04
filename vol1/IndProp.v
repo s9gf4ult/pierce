@@ -710,30 +710,12 @@ Qed.
 Theorem n_le_m__Sn_le_Sm : forall n m,
   n <= m -> S n <= S m.
 Proof.
-  destruct n. {
-    induction m. {
-      intros P.
-      apply le_n.
-    } {
-      intros P.
-      apply le_S.
-      apply IHm.
-      apply O_le_n.
-    }
+  intros n m H.
+  induction H. {
+    apply le_n.
   } {
-    induction m. {
-      intros P.
-      inversion P.
-    } {
-      intros P.
-      inversion P. {
-        apply le_n.
-      } {
-        apply IHm in H0.
-        apply le_S.
-        apply H0.
-      }
-    }
+    apply le_S.
+    apply IHle.
   }
 Qed.
 
@@ -774,6 +756,18 @@ Proof.
     simpl.
     apply n_le_m__Sn_le_Sm.
     apply IHa.
+  }
+Qed.
+
+Theorem n_le_Sn: forall n, n <= S n.
+Proof.
+  induction n. {
+    Print le.
+    apply le_S.
+    apply le_n.
+  } {
+   apply n_le_m__Sn_le_Sm.
+   apply IHn.
   }
 Qed.
 
