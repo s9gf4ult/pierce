@@ -230,15 +230,16 @@ Proof.
       inversion H1. {
         subst.
         Search "<=".
-        apply le_succ_diag_r.
-      }
-      apply le_S.
-      apply IHm.
-      apply H1.
-      inversion H1. {
+        apply n_le_Sn.
+      } {
+        apply le_S.
+        apply IHm.
+        apply H1.
+        apply H2.
       }
     }
   }
+Qed.
 
 (** [] *)
 
@@ -260,7 +261,38 @@ Proof.
 Theorem le_Sn_n : forall n,
   ~ (S n <= n).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n H.
+  inversion H. {
+    induction n. {
+      discriminate H0.
+    } {
+      apply IHn. {
+        apply le_S_n.
+        apply H.
+      } {
+        injection H0.
+        intros eq.
+        apply eq.
+      }
+    }
+  } {
+    subst.
+    induction m. {
+      inversion H0.
+    } {
+      apply IHm. {
+        apply le_S_n.
+        apply H.
+      } {
+        apply le_S_n.
+        apply H0.
+      }
+    }
+  }
+Qed.
+
+Print le_Sn_n.
+
 (** [] *)
 
 (** Reflexivity and transitivity are the main concepts we'll need for
