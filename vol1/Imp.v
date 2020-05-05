@@ -15,8 +15,8 @@
 *)
 
 (** We concentrate here on defining the _syntax_ and _semantics_ of
-    Imp; later chapters in _Programming Language Foundations_ 
-    (_Software Foundations_, volume 2) develop a theory of 
+    Imp; later chapters in _Programming Language Foundations_
+    (_Software Foundations_, volume 2) develop a theory of
     _program equivalence_ and introduce _Hoare Logic_, a widely
     used logic for reasoning about imperative programs. *)
 
@@ -362,6 +362,7 @@ Theorem optimize_0plus_sound'': forall a,
   aeval (optimize_0plus a) = aeval a.
 Proof.
   intros a.
+
   induction a;
     (* Most cases follow directly by the IH *)
     try (simpl; rewrite IHa1; rewrite IHa2; reflexivity);
@@ -427,7 +428,7 @@ Qed.
     that we have failed to construct a proof, not that we have
     constructed a wrong one. *)
 
-(** **** Exercise: 3 stars, standard (optimize_0plus_b_sound)  
+(** **** Exercise: 3 stars, standard (optimize_0plus_b_sound)
 
     Since the [optimize_0plus] transformation doesn't change the value
     of [aexp]s, we should be able to apply it to all the [aexp]s that
@@ -436,16 +437,45 @@ Qed.
     it is sound.  Use the tacticals we've just seen to make the proof
     as elegant as possible. *)
 
-Fixpoint optimize_0plus_b (b : bexp) : bexp
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Fixpoint optimize_0plus_b (b : bexp) : bexp :=
+  match b with
+  | BTrue         => BTrue
+  | BFalse        => BFalse
+  | BEq a b       => BEq (optimize_0plus a) (optimize_0plus b)
+  | BLe a b       => BLe (optimize_0plus a) (optimize_0plus b)
+  | BNot BTrue    => BFalse
+  | BNot BFalse   => BTrue
+  | BNot e        => BNot (optimize_0plus_b e)
+  | BAnd BFalse b => BFalse
+  | BAnd BTrue b  => optimize_0plus_b b
+  | BAnd a b      => BAnd (optimize_0plus_b a) (optimize_0plus_b b)
+  end.
+
+Print bexp_ind.
 
 Theorem optimize_0plus_b_sound : forall b,
   beval (optimize_0plus_b b) = beval b.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros b.
+  induction b ;
+    try ( reflexivity ) ;
+    try ( simpl; repeat (rewrite -> optimize_0plus_sound) ; reflexivity );
+    try (
+        simpl ;
+        destruct b ;
+          try (simpl;  reflexivity) ;
+          try (simpl; simpl in IHb;  rewrite -> IHb;  reflexivity )
+      ) .
+  - simpl.
+    destruct b1;
+      try ( simpl ;  rewrite -> IHb2;  reflexivity ) ;
+      try ( reflexivity ) ;
+      try ( simpl ; simpl in IHb1 ; rewrite -> IHb1 ; rewrite -> IHb2 ; reflexivity ).
+Qed.
+
 (** [] *)
 
-(** **** Exercise: 4 stars, standard, optional (optimize)  
+(** **** Exercise: 4 stars, standard, optional (optimize)
 
     _Design exercise_: The optimization implemented by our
     [optimize_0plus] function is only one of many possible
@@ -455,7 +485,7 @@ Proof.
     optimization and its correctness proof -- and build up to
     something more interesting incrementially.)  *)
 
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
@@ -713,7 +743,7 @@ Inductive aevalR : aexp -> nat -> Prop :=
                          AMult e1 e2 \\ n1*n2
 *)
 
-(** **** Exercise: 1 star, standard, optional (beval_rules)  
+(** **** Exercise: 1 star, standard, optional (beval_rules)
 
     Here, again, is the Coq definition of the [beval] function:
 
@@ -792,7 +822,7 @@ Proof.
        try apply IHa1; try apply IHa2; reflexivity.
 Qed.
 
-(** **** Exercise: 3 stars, standard (bevalR)  
+(** **** Exercise: 3 stars, standard (bevalR)
 
     Write a relation [bevalR] in the same style as
     [aevalR], and prove that it is equivalent to [beval]. *)
@@ -822,7 +852,7 @@ End AExp.
 Module aevalR_division.
 
 (** For example, suppose that we wanted to extend the arithmetic
-    operations with division: *) 
+    operations with division: *)
 
 Inductive aexp : Type :=
   | ANum (n : nat)
@@ -937,7 +967,7 @@ End aevalR_extended.
 (** ** States *)
 
 (** Since we'll want to look variables up to find out their current
-    values, we'll reuse maps from the [Maps] chapter, and 
+    values, we'll reuse maps from the [Maps] chapter, and
     [string]s will be used to represent variables in Imp.
 
     A _machine state_ (or just _state_) represents the current values
@@ -1109,7 +1139,7 @@ Proof. reflexivity. Qed.
     (We choose this slightly awkward concrete syntax for the
     sake of being able to define Imp syntax using Coq's notation
     mechanism.  In particular, we use [TEST] to avoid conflicting with
-    the [if] and [IF] notations from the standard library.) 
+    the [if] and [IF] notations from the standard library.)
     For example, here's factorial in Imp:
 
      Z ::= X;;
@@ -1472,7 +1502,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, standard, optional (pup_to_n)  
+(** **** Exercise: 3 stars, standard, optional (pup_to_n)
 
     Write an Imp program that sums the numbers from [1] to
    [X] (inclusive: [1 + 2 + ... + X]) in the variable [Y].
@@ -1563,7 +1593,7 @@ Proof.
   inversion Heval. subst. clear Heval. simpl.
   apply t_update_eq.  Qed.
 
-(** **** Exercise: 3 stars, standard, recommended (XtimesYinZ_spec)  
+(** **** Exercise: 3 stars, standard, recommended (XtimesYinZ_spec)
 
     State and prove a specification of [XtimesYinZ]. *)
 
@@ -1589,7 +1619,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, standard (no_whiles_eqv)  
+(** **** Exercise: 3 stars, standard (no_whiles_eqv)
 
     Consider the following function: *)
 
@@ -1624,10 +1654,10 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 4 stars, standard (no_whiles_terminating)  
+(** **** Exercise: 4 stars, standard (no_whiles_terminating)
 
     Imp programs that don't involve while loops always terminate.
-    State and prove a theorem [no_whiles_terminating] that says this. 
+    State and prove a theorem [no_whiles_terminating] that says this.
 
     Use either [no_whiles] or [no_whilesR], as you prefer. *)
 
@@ -1640,7 +1670,7 @@ Definition manual_grade_for_no_whiles_terminating : option (nat*string) := None.
 (* ################################################################# *)
 (** * Additional Exercises *)
 
-(** **** Exercise: 3 stars, standard (stack_compiler)  
+(** **** Exercise: 3 stars, standard (stack_compiler)
 
     Old HP Calculators, programming languages like Forth and Postscript,
     and abstract machines like the Java Virtual Machine all evaluate
@@ -1732,7 +1762,7 @@ Example s_compile1 :
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 4 stars, advanced (stack_compiler_correct)  
+(** **** Exercise: 4 stars, advanced (stack_compiler_correct)
 
     Now we'll prove the correctness of the compiler implemented in the
     previous exercise.  Remember that the specification left
@@ -1751,7 +1781,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, standard, optional (short_circuit)  
+(** **** Exercise: 3 stars, standard, optional (short_circuit)
 
     Most modern programming languages use a "short-circuit" evaluation
     rule for boolean [and]: to evaluate [BAnd b1 b2], first evaluate
@@ -1768,12 +1798,12 @@ Proof.
     would _not_ be equivalent to the original, since it would make more
     programs terminate.) *)
 
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
 Module BreakImp.
-(** **** Exercise: 4 stars, advanced (break_imp)  
+(** **** Exercise: 4 stars, advanced (break_imp)
 
     Imperative languages like C and Java often include a [break] or
     similar statement for interrupting the execution of loops. In this
@@ -1933,7 +1963,7 @@ Proof.
 (** [] *)
 End BreakImp.
 
-(** **** Exercise: 4 stars, standard, optional (add_for_loop)  
+(** **** Exercise: 4 stars, standard, optional (add_for_loop)
 
     Add C-style [for] loops to the language of commands, update the
     [ceval] definition to define the semantics of [for] loops, and add
@@ -1948,7 +1978,7 @@ End BreakImp.
     about making up a concrete Notation for [for] loops, but feel free
     to play with this too if you like.) *)
 
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
