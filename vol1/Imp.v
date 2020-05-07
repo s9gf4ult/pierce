@@ -459,7 +459,7 @@ Proof.
   intros b.
   induction b ;
     try ( reflexivity ) ;
-    try ( simpl; repeat (rewrite -> optimize_0plus_sound) ; reflexivity );
+    try ( simpl; repeat (rewrite -> optimize_0plus_sound) ; reflexivity ) ;
     try (
         simpl ;
         destruct b ;
@@ -828,13 +828,36 @@ Qed.
     [aevalR], and prove that it is equivalent to [beval]. *)
 
 Inductive bevalR: bexp -> bool -> Prop :=
-(* FILL IN HERE *)
+| E_True : bevalR BTrue true
+| E_False : bevalR BFalse false
+| E_Eq (a1 a2 : aexp) (n1 n2 : nat) (e1 : aevalR a1 n1) (e2 : aevalR a2 n2)
+  : bevalR (BEq a1 a2) (n1 =? n2)
+| E_Le (a1 a2 : aexp) (n1 n2 : nat) (e1 : aevalR a1 n1) (e2 : aevalR a2 n2)
+  : bevalR (BLe a1 a2) (n1 <=? n2)
+| E_Not (be : bexp) (b : bool) (e : bevalR be b) : bevalR (BNot be) (negb b)
+| E_And (be1 be2 : bexp) (b1 b2 : bool) (e1 : bevalR be1 b1) (e2 : bevalR be2 b2)
+  : bevalR (BAnd be1 be2) (andb b1 b2)
 .
 
 Lemma beval_iff_bevalR : forall b bv,
   bevalR b bv <-> beval b = bv.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  split. {
+    intros H.
+    induction H ;
+      try ( subst ; reflexivity ) ;
+      try (
+          rewrite -> aeval_iff_aevalR in e1 ;
+          rewrite -> aeval_iff_aevalR in e2 ;
+          rewrite <- e1 ;
+          rewrite <- e2 ;
+          reflexivity
+        ) .
+  } {
+    intros H.
+
+  }
+
 (** [] *)
 
 End AExp.
