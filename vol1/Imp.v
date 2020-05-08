@@ -855,8 +855,18 @@ Proof.
         ) .
   } {
     intros H.
-
+    generalize dependent bv.
+    induction b ;
+      intros bv H ;
+      rewrite <- H ;
+      simpl ;
+      constructor ;
+      try ( repeat (apply aeval_iff_aevalR ; reflexivity) ; fail ) ;
+      try ( repeat auto ; fail ) .
   }
+Qed.
+
+Print beval_iff_bevalR.
 
 (** [] *)
 
