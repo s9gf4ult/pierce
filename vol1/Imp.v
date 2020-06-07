@@ -2025,7 +2025,21 @@ Inductive ceval : com -> state -> result -> state -> Prop :=
   | E_Ass : forall st x e n,
       aeval st e = n ->
       st =[ x ::= e ]=> (x !-> n ; st) / SContinue
-  (* FILL IN HERE *)
+  | E_Seq_Break : forall c1 c2 st1 st2 ,
+      st1 =[ c1 ]=> st2 / SBreak ->
+      st1 =[ c1 ;; c2 ]=> st2 / SBreak
+  | E_Seq_Cont : forall c1 c2 st1 st2 st3 res ,
+      st1 =[ c1 ]=> st2 / SContinue ->
+      st2 =[ c2 ]=> st3 / res ->
+      st1 =[ c1 ;; c2 ]=> st3 / res
+  | E_If_True : forall c1 c2 be st1 st2 res,
+      beval st1 be = true ->
+      st1 =[ c1 ]=> st2 / res ->
+      st1 =[ TEST be THEN c1 ELSE c2 FI ]=> st2 / res
+  | E_If_False : forall c1 c2 be st1 st2 res,
+      beval st1 be = false ->
+      st1 =[ c2 ]=> st2 / res ->
+      st1 =[ TEST be THEN c1 ELSE c2 FI ]=> st2 / res
 
   where "st '=[' c ']=>' st' '/' s" := (ceval c st s st').
 
