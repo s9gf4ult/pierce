@@ -1953,6 +1953,11 @@ Reserved Notation "st '=[' c ']=>' st' '/' s"
 Inductive ceval : com -> state -> result -> state -> Prop :=
   | E_Skip : forall st,
       st =[ CSkip ]=> st / SContinue
+  | E_Break : forall st,
+      st =[ CBreak ]=> st / SBreak
+  | E_Ass : forall st x e n,
+      aeval st e = n ->
+      st =[ x ::= e ]=> (x !-> n ; st) / SContinue
   (* FILL IN HERE *)
 
   where "st '=[' c ']=>' st' '/' s" := (ceval c st s st').
