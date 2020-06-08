@@ -2040,6 +2040,18 @@ Inductive ceval : com -> state -> result -> state -> Prop :=
       beval st1 be = false ->
       st1 =[ c2 ]=> st2 / res ->
       st1 =[ TEST be THEN c1 ELSE c2 FI ]=> st2 / res
+  | E_While_False : forall c be st ,
+      beval st be = false ->
+      st =[ WHILE be DO c END ]=> st / SContinue
+  | E_While_True_Cont : forall c be st1 st2 st3 ,
+      beval st1 be = true ->
+      st1 =[ c ]=> st2 / SContinue ->
+      st2 =[ WHILE be DO c END ]=> st3 / SContinue ->
+      st1 =[ WHILE be DO c END ]=> st3 / SContinue
+  | E_While_True_Break : forall c be st1 st2  ,
+      beval st1 be = true ->
+      st1 =[ c ]=> st2 / SBreak ->
+      st1 =[ WHILE be DO c END ]=> st2 / SContinue
 
   where "st '=[' c ']=>' st' '/' s" := (ceval c st s st').
 
@@ -2049,13 +2061,23 @@ Theorem break_ignore : forall c st st' s,
      st =[ BREAK;; c ]=> st' / s ->
      st = st'.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros.
+  inversion H. {
+    inversion H5.
+    - reflexivity.
+  } {
+    subst.
+    inversion H2.
+  }
+Qed.
 
 Theorem while_continue : forall b c st st' s,
   st =[ WHILE b DO c END ]=> st' / s ->
   s = SContinue.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros.
+  inversion H ; reflexivity.
+Qed.
 
 Theorem while_stops_on_break : forall b c st st',
   beval st b = true ->
