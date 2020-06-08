@@ -2084,8 +2084,9 @@ Theorem while_stops_on_break : forall b c st st',
   st =[ c ]=> st' / SBreak ->
   st =[ WHILE b DO c END ]=> st' / SContinue.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros.
+  apply E_While_True_Break ; assumption.
+Qed.
 
 (** **** Exercise: 3 stars, advanced, optional (while_break_true)  *)
 Theorem while_break_true : forall b c st st',
@@ -2093,7 +2094,13 @@ Theorem while_break_true : forall b c st st',
   beval st' b = true ->
   exists st'', st'' =[ c ]=> st' / SBreak.
 Proof.
-(* FILL IN HERE *) Admitted.
+  intros.
+  inversion H ; subst. {
+    rewrite H0 in H4.
+    discriminate H4.
+  } {
+Admitted.
+
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced, optional (ceval_deterministic)  *)
@@ -2102,7 +2109,25 @@ Theorem ceval_deterministic: forall (c:com) st st1 st2 s1 s2,
      st =[ c ]=> st2 / s2 ->
      st1 = st2 /\ s1 = s2.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction c ;
+    try ( intros st st1 st2 s1 s2 H1 H2;
+          inversion H1 ; inversion H2 ; subst ;
+          constructor ; reflexivity ;
+          fail ).
+  - intros st st1 st2 s1 s2 H1 H2.
+    inversion H1 ; inversion H2 ; subst ;
+      try ( apply IHc1 with st ; assumption ; fail ).
+    + destruct (IHc1 st _ _ _ _ H6 H9).
+      discriminate.
+    + destruct (IHc1 st _ _ _ _ H3 H13).
+      discriminate.
+    + destruct (IHc1 st _ _ _ _ H3 H10).
+      subst.
+      destruct (IHc2 st6 _ _ _ _ H7 H14).
+      subst.
+      constructor ; reflexivity.
+  -
+(* FILL IN HERE *) Admitted.
 
 (** [] *)
 End BreakImp.
