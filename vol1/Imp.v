@@ -2134,8 +2134,6 @@ Proof.
     reflexivity.
 Qed.
 
-(* FILL IN HERE *) Admitted.
-
 (** [] *)
 End BreakImp.
 
