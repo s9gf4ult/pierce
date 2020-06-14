@@ -204,7 +204,7 @@ Definition test_ceval (st:state) (c:com) :=
    ====>
       Some (2, 0, 4)   *)
 
-(** **** Exercise: 2 stars, standard, recommended (pup_to_n)  
+(** **** Exercise: 2 stars, standard, recommended (pup_to_n)
 
     Write an Imp program that sums the numbers from [1] to
    [X] (inclusive: [1 + 2 + ... + X]) in the variable [Y].  Make sure
@@ -213,7 +213,7 @@ Definition test_ceval (st:state) (c:com) :=
 Definition pup_to_n : com
   (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
 
-(* 
+(*
 
 Example pup_to_n_1 :
   test_ceval (X !-> 5) pup_to_n
@@ -222,13 +222,13 @@ Proof. reflexivity. Qed.
 
     [] *)
 
-(** **** Exercise: 2 stars, standard, optional (peven)  
+(** **** Exercise: 2 stars, standard, optional (peven)
 
     Write an [Imp] program that sets [Z] to [0] if [X] is even and
     sets [Z] to [1] otherwise.  Use [test_ceval] to test your
     program. *)
 
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
@@ -293,7 +293,7 @@ Proof.
           injection H1. intros H2. rewrite <- H2.
           apply E_WhileFalse. apply Heqr. Qed.
 
-(** **** Exercise: 4 stars, standard (ceval_step__ceval_inf)  
+(** **** Exercise: 4 stars, standard (ceval_step__ceval_inf)
 
     Write an informal proof of [ceval_step__ceval], following the
     usual template.  (The template for case analysis on an inductively
@@ -352,7 +352,7 @@ induction i1 as [|i1']; intros i2 st st' c Hle Hceval.
       * (* i1'o = None *)
         simpl in Hceval. discriminate Hceval.  Qed.
 
-(** **** Exercise: 3 stars, standard, recommended (ceval__ceval_step)  
+(** **** Exercise: 3 stars, standard, recommended (ceval__ceval_step)
 
     Finish the following proof.  You'll need [ceval_step_more] in a
     few places, as well as some basic facts about [<=] and [plus]. *)
@@ -362,8 +362,49 @@ Theorem ceval__ceval_step: forall c st st',
       exists i, ceval_step st c i = Some st'.
 Proof.
   intros c st st' Hce.
-  induction Hce.
-  (* FILL IN HERE *) Admitted.
+  induction Hce ;
+    try (
+        exists 1 ; reflexivity ; fail
+      ) .
+  - exists 1.
+    simpl. rewrite H. reflexivity.
+  - inversion IHHce1.
+    inversion IHHce2.
+    assert (H1: ceval_step st c1 (x + x0) = Some st').  {
+      apply (ceval_step_more x (x + x0)) ; try omega ; assumption.
+    }
+    assert (H2: ceval_step st' c2 (x + x0) = Some st''). {
+      apply (ceval_step_more x0 (x + x0)) ; try omega ; assumption.
+    }
+    exists (S (x + x0)).
+    simpl.
+    rewrite H1.
+    rewrite H2.
+    reflexivity.
+  - inversion IHHce.
+    exists (S x).
+    simpl.
+    destruct (beval st b) ; try assumption ; try discriminate.
+  - inversion IHHce.
+    exists (S x).
+    simpl.
+    destruct (beval st b) ; try assumption ; try discriminate.
+  - exists 1.
+    simpl.
+    rewrite H.
+    reflexivity.
+  - inversion IHHce1.
+    inversion IHHce2.
+    exists (S (x + x0)).
+    simpl.
+    rewrite H.
+    assert (Hx: ceval_step st c (x + x0) = Some st'). {
+      apply (ceval_step_more x (x + x0)) ; try omega ; assumption.
+    }
+    rewrite Hx.
+    apply (ceval_step_more x0 (x + x0)) ; try omega ; assumption.
+Qed.
+
 (** [] *)
 
 Theorem ceval_and_ceval_step_coincide: forall c st st',
