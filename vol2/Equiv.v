@@ -226,7 +226,13 @@ Theorem TEST_false : forall b c1 c2,
     (TEST b THEN c1 ELSE c2 FI)
     c2.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros b c1 c2 Eq.
+  unfold bequiv in Eq. simpl in Eq.
+  split ; intros H.
+  - inversion H ; subst ; try congruence ; try assumption.
+  - apply E_IfFalse ; auto.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, standard (swap_if_branches)
@@ -239,7 +245,24 @@ Theorem swap_if_branches : forall b e1 e2,
     (TEST b THEN e1 ELSE e2 FI)
     (TEST BNot b THEN e2 ELSE e1 FI).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros b e1 e2.
+  split ; intros H ; inversion H ; clear H ; subst.
+  - apply E_IfFalse.
+    + simpl. rewrite H5 . reflexivity.
+    + assumption.
+  - apply E_IfTrue.
+    + simpl. rewrite H5. reflexivity.
+    + assumption.
+  - apply E_IfFalse.
+    + simpl in H5.
+      destruct (beval st b) ; try discriminate ; reflexivity.
+    + assumption.
+  - apply E_IfTrue.
+    + simpl in H5.
+      destruct (beval st b) ; try discriminate ; reflexivity.
+    + assumption.
+Qed.
+
 (** [] *)
 
 (** For [WHILE] loops, we can give a similar pair of theorems.  A loop
@@ -342,7 +365,18 @@ Theorem WHILE_true : forall b c,
     (WHILE b DO c END)
     (WHILE true DO SKIP END).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros b c eq.
+  split ; intros H.
+  - inversion H ; subst ; clear H.
+    + unfold bequiv in eq. simpl in eq.
+      congruence.
+    + destruct (WHILE_true_nonterm b c st'0 st') ; assumption.
+  - inversion H ; subst ; clear H.
+    + discriminate.
+    + destruct (WHILE_true_nonterm BTrue SKIP st'0 st') .
+      * unfold bequiv. reflexivity.
+      * assumption.
+Qed.
 (** [] *)
 
 (** A more interesting fact about [WHILE] commands is that any number
