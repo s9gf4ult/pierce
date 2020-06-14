@@ -76,7 +76,7 @@ Qed.
 Theorem bequiv_example: bequiv (X - X = 0)%imp true.
 Proof.
   intros st. unfold beval.
-  rewrite aequiv_example. reflexivity.
+  rewrite aequiv_example. simpl. reflexivity.
 Qed.
 
 (** For commands, the situation is a little more subtle.  We can't
@@ -118,7 +118,7 @@ Proof.
     assumption.
 Qed.
 
-(** **** Exercise: 2 stars, standard (skip_right)  
+(** **** Exercise: 2 stars, standard (skip_right)
 
     Prove that adding a [SKIP] after a command results in an
     equivalent program *)
@@ -128,7 +128,17 @@ Theorem skip_right : forall c,
     (c ;; SKIP)
     c.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros c.
+  unfold cequiv.
+  intros st st'.
+  split ; intros H.
+  - inversion H ; subst.
+    inversion H5 ; subst.
+    assumption.
+  - apply E_Seq with st' ; try assumption.
+    + apply E_Skip.
+Qed.
+
 (** [] *)
 
 (** Similarly, here is a simple transformation that optimizes [TEST]
@@ -148,10 +158,10 @@ Proof.
 
 (** Of course, no (human) programmer would write a conditional whose
     guard is literally [true].  But they might write one whose guard
-    is _equivalent_ to true: 
+    is _equivalent_ to true:
 
     _Theorem_: If [b] is equivalent to [BTrue], then [TEST b THEN c1
-    ELSE c2 FI] is equivalent to [c1]. 
+    ELSE c2 FI] is equivalent to [c1].
    _Proof_:
 
      - ([->]) We must show, for all [st] and [st'], that if [st =[
@@ -202,12 +212,12 @@ Proof.
       assumption.
     + (* b evaluates to false (contradiction) *)
       unfold bequiv in Hb. simpl in Hb.
-      rewrite Hb in H5.
-      inversion H5.
+      congruence.
   - (* <- *)
     apply E_IfTrue; try assumption.
     unfold bequiv in Hb. simpl in Hb.
-    rewrite Hb. reflexivity.  Qed.
+    auto.
+Qed.
 
 (** **** Exercise: 2 stars, standard, recommended (TEST_false)  *)
 Theorem TEST_false : forall b c1 c2,
@@ -219,7 +229,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, standard (swap_if_branches)  
+(** **** Exercise: 3 stars, standard (swap_if_branches)
 
     Show that we can swap the branches of an IF if we also negate its
     guard. *)
@@ -257,7 +267,7 @@ Proof.
     rewrite Hb.
     reflexivity.  Qed.
 
-(** **** Exercise: 2 stars, advanced, optional (WHILE_false_informal)  
+(** **** Exercise: 2 stars, advanced, optional (WHILE_false_informal)
 
     Write an informal proof of [WHILE_false].
 
@@ -313,7 +323,7 @@ Proof.
   - (* E_WhileTrue *) (* immediate from the IH *)
     apply IHceval2. reflexivity.  Qed.
 
-(** **** Exercise: 2 stars, standard, optional (WHILE_true_nonterm_informal)  
+(** **** Exercise: 2 stars, standard, optional (WHILE_true_nonterm_informal)
 
     Explain what the lemma [WHILE_true_nonterm] means in English.
 
@@ -321,7 +331,7 @@ Proof.
 
     [] *)
 
-(** **** Exercise: 2 stars, standard, recommended (WHILE_true)  
+(** **** Exercise: 2 stars, standard, recommended (WHILE_true)
 
     Prove the following theorem. _Hint_: You'll want to use
     [WHILE_true_nonterm] here. *)
@@ -705,13 +715,13 @@ Proof.
     + apply refl_cequiv.
 Qed.
 
-(** **** Exercise: 3 stars, advanced, optional (not_congr)  
+(** **** Exercise: 3 stars, advanced, optional (not_congr)
 
     We've shown that the [cequiv] relation is both an equivalence and
     a congruence on commands.  Can you think of a relation on commands
     that is an equivalence but _not_ a congruence? *)
 
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
@@ -752,21 +762,21 @@ Fixpoint fold_constants_aexp (a : aexp) : aexp :=
   | ANum n       => ANum n
   | AId x        => AId x
   | APlus a1 a2  =>
-    match (fold_constants_aexp a1, 
+    match (fold_constants_aexp a1,
            fold_constants_aexp a2)
     with
     | (ANum n1, ANum n2) => ANum (n1 + n2)
     | (a1', a2') => APlus a1' a2'
     end
   | AMinus a1 a2 =>
-    match (fold_constants_aexp a1, 
+    match (fold_constants_aexp a1,
            fold_constants_aexp a2)
     with
     | (ANum n1, ANum n2) => ANum (n1 - n2)
     | (a1', a2') => AMinus a1' a2'
     end
   | AMult a1 a2  =>
-    match (fold_constants_aexp a1, 
+    match (fold_constants_aexp a1,
            fold_constants_aexp a2)
     with
     | (ANum n1, ANum n2) => ANum (n1 * n2)
@@ -775,7 +785,7 @@ Fixpoint fold_constants_aexp (a : aexp) : aexp :=
   end.
 
 Example fold_aexp_ex1 :
-    fold_constants_aexp ((1 + 2) * X) 
+    fold_constants_aexp ((1 + 2) * X)
   = (3 * X)%imp.
 Proof. reflexivity. Qed.
 
@@ -798,7 +808,7 @@ Fixpoint fold_constants_bexp (b : bexp) : bexp :=
   | BTrue        => BTrue
   | BFalse       => BFalse
   | BEq a1 a2  =>
-      match (fold_constants_aexp a1, 
+      match (fold_constants_aexp a1,
              fold_constants_aexp a2) with
       | (ANum n1, ANum n2) =>
           if n1 =? n2 then BTrue else BFalse
@@ -806,7 +816,7 @@ Fixpoint fold_constants_bexp (b : bexp) : bexp :=
           BEq a1' a2'
       end
   | BLe a1 a2  =>
-      match (fold_constants_aexp a1, 
+      match (fold_constants_aexp a1,
              fold_constants_aexp a2) with
       | (ANum n1, ANum n2) =>
           if n1 <=? n2 then BTrue else BFalse
@@ -820,7 +830,7 @@ Fixpoint fold_constants_bexp (b : bexp) : bexp :=
       | b1' => BNot b1'
       end
   | BAnd b1 b2  =>
-      match (fold_constants_bexp b1, 
+      match (fold_constants_bexp b1,
              fold_constants_bexp b2) with
       | (BTrue, BTrue) => BTrue
       | (BTrue, BFalse) => BFalse
@@ -831,7 +841,7 @@ Fixpoint fold_constants_bexp (b : bexp) : bexp :=
   end.
 
 Example fold_bexp_ex1 :
-  fold_constants_bexp (true && ~(false && true))%imp 
+  fold_constants_bexp (true && ~(false && true))%imp
   = true.
 Proof. reflexivity. Qed.
 
@@ -883,7 +893,7 @@ Example fold_com_ex1 :
   = (* After constant folding: *)
     (X ::= 9;;
      Y ::= X - 3;;
-     TEST (X - Y) = 6 THEN SKIP 
+     TEST (X - Y) = 6 THEN SKIP
      ELSE Y ::= 0 FI;;
      Y ::= 0;;
      WHILE Y = 0 DO
@@ -915,7 +925,7 @@ Proof.
          destruct (fold_constants_aexp a2);
          rewrite IHa1; rewrite IHa2; reflexivity). Qed.
 
-(** **** Exercise: 3 stars, standard, optional (fold_bexp_Eq_informal)  
+(** **** Exercise: 3 stars, standard, optional (fold_bexp_Eq_informal)
 
     Here is an informal proof of the [BEq] case of the soundness
     argument for boolean expression constant folding.  Read it
@@ -1051,7 +1061,7 @@ Proof.
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, standard (fold_constants_com_sound)  
+(** **** Exercise: 3 stars, standard (fold_constants_com_sound)
 
     Complete the [WHILE] case of the following proof. *)
 
@@ -1085,7 +1095,7 @@ Proof.
 (* ----------------------------------------------------------------- *)
 (** *** Soundness of (0 + n) Elimination, Redux *)
 
-(** **** Exercise: 4 stars, advanced, optional (optimize_0plus)  
+(** **** Exercise: 4 stars, advanced, optional (optimize_0plus)
 
     Recall the definition [optimize_0plus] from the [Imp] chapter of _Logical
     Foundations_:
@@ -1127,7 +1137,7 @@ Proof.
    - Prove that the optimizer is sound.  (This part should be _very_
      easy.)  *)
 
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
@@ -1260,7 +1270,7 @@ Proof.
     by (rewrite Hcontra; reflexivity).
   subst. inversion Hcontra'.  Qed.
 
-(** **** Exercise: 4 stars, standard, optional (better_subst_equiv)  
+(** **** Exercise: 4 stars, standard, optional (better_subst_equiv)
 
     The equivalence we had in mind above was not complete nonsense --
     it was actually almost right.  To make it correct, we just need to
@@ -1292,11 +1302,11 @@ Proof.
 (** Using [var_not_used_in_aexp], formalize and prove a correct version
     of [subst_equiv_property]. *)
 
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
-(** **** Exercise: 3 stars, standard (inequiv_exercise)  
+(** **** Exercise: 3 stars, standard (inequiv_exercise)
 
     Prove that an infinite loop is not equivalent to [SKIP] *)
 
@@ -1377,7 +1387,7 @@ Notation "'TEST' e1 'THEN' e2 'ELSE' e3 'FI'" :=
 Notation "'HAVOC' l" :=
   (CHavoc l) (at level 60) : imp_scope.
 
-(** **** Exercise: 2 stars, standard (himp_ceval)  
+(** **** Exercise: 2 stars, standard (himp_ceval)
 
     Now, we must extend the operational semantics. We have provided
    a template for the [ceval] relation below, specifying the big-step
@@ -1442,7 +1452,7 @@ Definition cequiv (c1 c2 : com) : Prop := forall st st' : state,
 (** Let's apply this definition to prove some nondeterministic
     programs equivalent / inequivalent. *)
 
-(** **** Exercise: 3 stars, standard (havoc_swap)  
+(** **** Exercise: 3 stars, standard (havoc_swap)
 
     Are the following two programs equivalent? *)
 
@@ -1460,7 +1470,7 @@ Theorem pXY_cequiv_pYX :
 Proof. (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 4 stars, standard, optional (havoc_copy)  
+(** **** Exercise: 4 stars, standard, optional (havoc_copy)
 
     Are the following two programs equivalent? *)
 
@@ -1490,7 +1500,7 @@ Proof. (* FILL IN HERE *) Admitted.
     phenomenon.
 *)
 
-(** **** Exercise: 4 stars, advanced (p1_p2_term)  
+(** **** Exercise: 4 stars, advanced (p1_p2_term)
 
     Consider the following commands: *)
 
@@ -1520,7 +1530,7 @@ Proof.
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 4 stars, advanced (p1_p2_equiv)  
+(** **** Exercise: 4 stars, advanced (p1_p2_equiv)
 
     Use these two lemmas to prove that [p1] and [p2] are actually
     equivalent. *)
@@ -1529,7 +1539,7 @@ Theorem p1_p2_equiv : cequiv p1 p2.
 Proof. (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 4 stars, advanced (p3_p4_inequiv)  
+(** **** Exercise: 4 stars, advanced (p3_p4_inequiv)
 
     Prove that the following programs are _not_ equivalent.  (Hint:
     What should the value of [Z] be when [p3] terminates?  What about
@@ -1550,7 +1560,7 @@ Theorem p3_p4_inequiv : ~ cequiv p3 p4.
 Proof. (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 5 stars, advanced, optional (p5_p6_equiv)  
+(** **** Exercise: 5 stars, advanced, optional (p5_p6_equiv)
 
     Prove that the following commands are equivalent.  (Hint: As
     mentioned above, our definition of [cequiv] for Himp only takes
@@ -1577,7 +1587,7 @@ End Himp.
 (* ################################################################# *)
 (** * Additional Exercises *)
 
-(** **** Exercise: 4 stars, standard, optional (for_while_equiv)  
+(** **** Exercise: 4 stars, standard, optional (for_while_equiv)
 
     This exercise extends the optional [add_for_loop] exercise from
     the [Imp] chapter, where you were asked to extend the language
@@ -1595,11 +1605,11 @@ End Himp.
          c2
        END
 *)
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
-(** **** Exercise: 3 stars, standard, optional (swap_noninterfering_assignments)  
+(** **** Exercise: 3 stars, standard, optional (swap_noninterfering_assignments)
 
     (Hint: You'll need [functional_extensionality] for this one.) *)
 
@@ -1614,7 +1624,7 @@ Proof.
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 4 stars, advanced, optional (capprox)  
+(** **** Exercise: 4 stars, advanced, optional (capprox)
 
     In this exercise we define an asymmetric variant of program
     equivalence we call _program approximation_. We say that a
