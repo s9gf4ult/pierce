@@ -1088,7 +1088,15 @@ Proof.
        become constants after folding *)
       simpl. destruct (n =? n0); reflexivity.
   - (* BLe *)
-    (* FILL IN HERE *) admit.
+    simpl.
+    remember (fold_constants_aexp a1) as a1' eqn:Ha1.
+    remember (fold_constants_aexp a2) as a2' eqn:Ha2.
+    replace (aeval st a1) with (aeval st a1') by
+        ( subst a1' ; rewrite <- fold_constants_aexp_sound ; reflexivity ).
+    replace (aeval st a2) with (aeval st a2') by
+        ( subst a2' ; rewrite <- fold_constants_aexp_sound ; reflexivity ).
+    destruct a1' ; destruct a2' ; try reflexivity.
+    + destruct (n <=? n0) eqn:D ; auto.
   - (* BNot *)
     simpl. remember (fold_constants_bexp b) as b' eqn:Heqb'.
     rewrite IHb.
@@ -1099,7 +1107,7 @@ Proof.
     remember (fold_constants_bexp b2) as b2' eqn:Heqb2'.
     rewrite IHb1. rewrite IHb2.
     destruct b1'; destruct b2'; reflexivity.
-(* FILL IN HERE *) Admitted.
+Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, standard (fold_constants_com_sound)
@@ -1118,7 +1126,7 @@ Proof.
   - (* TEST *)
     assert (bequiv b (fold_constants_bexp b)). {
       apply fold_constants_bexp_sound. }
-    destruct (fold_constants_bexp b) eqn:Heqb;
+    destruct (fold_constants_bexp b) eqn:Heqb ;
       try (apply CIf_congruence; assumption).
       (* (If the optimization doesn't eliminate the if, then the
           result is easy to prove from the IH and
@@ -1130,7 +1138,15 @@ Proof.
       apply trans_cequiv with c2; try assumption.
       apply TEST_false; assumption.
   - (* WHILE *)
-    (* FILL IN HERE *) Admitted.
+    assert (bequiv b (fold_constants_bexp b)). {
+      apply fold_constants_bexp_sound. }
+    destruct (fold_constants_bexp b) eqn:Eq ;
+      try (apply CWhile_congruence ; assumption ).
+    + apply WHILE_true.
+      assumption.
+    + apply WHILE_false. assumption.
+Qed.
+
 (** [] *)
 
 (* ----------------------------------------------------------------- *)
