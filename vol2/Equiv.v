@@ -1354,7 +1354,16 @@ Lemma aeval_weakening : forall x st a ni,
   var_not_used_in_aexp x a ->
   aeval (x !-> ni ; st) a = aeval st a.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros.
+  induction H ; try reflexivity ;
+    try ( simpl ;
+          rewrite IHvar_not_used_in_aexp1 ;
+          rewrite IHvar_not_used_in_aexp2 ;
+          reflexivity ;
+          fail ).
+  - simpl.
+    apply t_update_neq ; assumption.
+Qed.
 
 (** Using [var_not_used_in_aexp], formalize and prove a correct version
     of [subst_equiv_property]. *)
