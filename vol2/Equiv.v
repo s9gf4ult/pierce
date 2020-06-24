@@ -1489,6 +1489,8 @@ Inductive ceval : com -> state -> state -> Prop :=
       st  =[ c ]=> st' ->
       st' =[ WHILE b DO c END ]=> st'' ->
       st  =[ WHILE b DO c END ]=> st''
+  | E_Havoc : forall st x n,
+      st =[ CHavoc x ]=> (x !-> n; st)
 (* FILL IN HERE *)
 
   where "st =[ c ]=> st'" := (ceval c st st').
@@ -1499,12 +1501,16 @@ Close Scope imp_scope.
 
 Example havoc_example1 : empty_st =[ (HAVOC X)%imp ]=> (X !-> 0).
 Proof.
-(* FILL IN HERE *) Admitted.
+  apply E_Havoc.
+Qed.
 
 Example havoc_example2 :
   empty_st =[ (SKIP;; HAVOC Z)%imp ]=> (Z !-> 42).
 Proof.
-(* FILL IN HERE *) Admitted.
+  apply E_Seq with empty_st.
+  apply E_Skip.
+  apply E_Havoc.
+Qed.
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_Check_rule_for_HAVOC : option (nat*string) := None.
@@ -1525,6 +1531,15 @@ Definition cequiv (c1 c2 : com) : Prop := forall st st' : state,
 Definition pXY :=
   (HAVOC X;; HAVOC Y)%imp.
 
+Example fuck: (HAVOC X)%imp = (HAVOC "X")%imp.
+Proof.
+  reflexivity.
+Qed.
+
+Print fuck.
+
+Print pXY.
+
 Definition pYX :=
   (HAVOC Y;; HAVOC X)%imp.
 
@@ -1532,8 +1547,36 @@ Definition pYX :=
     not, prove that. *)
 
 Theorem pXY_cequiv_pYX :
-  cequiv pXY pYX \/ ~cequiv pXY pYX.
-Proof. (* FILL IN HERE *) Admitted.
+  (cequiv pXY pYX).
+Proof.
+  assert (P: forall st1 st2 x y, st1 =[ (HAVOC x ;; HAVOC y)%imp ]=> st2 -> st1 =[ (HAVOC y ;; HAVOC x)%imp ]=> st2).
+  {
+    intros st1 st2 x y.
+    intros H.
+    destruct (eqb_string x y) eqn:Xeq. {
+      assert (x = y). {
+        apply eqb_string_true_iff ; assumption.
+      }
+      rewrite H0 in *.
+      assumption.
+    } {
+      assert (x <> y). {
+        apply eqb_string_false_iff ; assumption.
+      }
+      inversion H ; inversion H3 ; inversion H6 ; subst.
+      assert ((y !-> n0; x !-> n; st1) = (x !-> n; y !-> n0; st1)). {
+        apply t_update_permute.
+        assumption.
+      }
+      rewrite H1.
+      apply E_Seq with (y !-> n0; st1).
+      apply E_Havoc.
+      apply E_Havoc.
+    }
+  }
+  split ; apply P.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 4 stars, standard, optional (havoc_copy)
