@@ -81,8 +81,8 @@ From PLF Require Import Imp.
     that they are about. *)
 
 (** Overview of this chapter...
-    
-    Topic:      
+
+    Topic:
       - A systematic method for reasoning about the _functional
         correctness_ of programs in Imp
 
@@ -109,7 +109,7 @@ From PLF Require Import Imp.
 
 Definition Assertion := state -> Prop.
 
-(** **** Exercise: 1 star, standard, optional (assertions)  
+(** **** Exercise: 1 star, standard, optional (assertions)
 
     Paraphrase the following assertions in English (or your favorite
     natural language). *)
@@ -135,7 +135,7 @@ End ExAssertions.
     will never need to talk about two different memory states at the
     same time).  For discussing examples informally, we'll adopt some
     simplifying conventions: we'll drop the initial [fun st =>], and
-    we'll write just [X] to mean [st X].  Thus, instead of writing 
+    we'll write just [X] to mean [st X].  Thus, instead of writing
 
       fun st => (st Z) * (st Z) <= m /\
                 ~ ((S (st Z)) * (S (st Z)) <= m)
@@ -215,7 +215,7 @@ Notation "{{ P }}  c  {{ Q }}" :=
   (hoare_triple P c Q) (at level 90, c at next level)
   : hoare_spec_scope.
 
-(** **** Exercise: 1 star, standard, optional (triples)  
+(** **** Exercise: 1 star, standard, optional (triples)
 
     Paraphrase the following Hoare triples in English.
 
@@ -229,17 +229,17 @@ Notation "{{ P }}  c  {{ Q }}" :=
 
    5) {{X = m}}
       c
-      {{Y = real_fact m}}   
+      {{Y = real_fact m}}
 
    6) {{X = m}}
       c
       {{(Z * Z) <= m /\ ~ (((S Z) * (S Z)) <= m)}}
 *)
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
-(** **** Exercise: 1 star, standard, optional (valid_triples)  
+(** **** Exercise: 1 star, standard, optional (valid_triples)
 
     Which of the following Hoare triples are _valid_ -- i.e., the
     claimed relation between [P], [c], and [Q] is true?
@@ -266,7 +266,7 @@ Notation "{{ P }}  c  {{ Q }}" :=
         WHILE ~(X = 0) DO X ::= X + 1 END
       {{X = 100}}
 *)
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
@@ -316,7 +316,7 @@ Proof.
 
     In English: if we start out in a state where the value of [Y]
     is [1] and we assign [Y] to [X], then we'll finish in a
-    state where [X] is [1]. 
+    state where [X] is [1].
     That is, the property of being equal to [1] gets transferred
     from [Y] to [X]. *)
 
@@ -466,9 +466,9 @@ Proof.
 
       {{X < 4}} X ::= X + 1 {{X < 5}}
 
-   We will see how to do so in the next section. *)		 
+   We will see how to do so in the next section. *)
 
-(** **** Exercise: 2 stars, standard (hoare_asgn_examples)  
+(** **** Exercise: 2 stars, standard (hoare_asgn_examples)
 
     Translate these informal Hoare triples...
 
@@ -489,7 +489,7 @@ Proof.
 Definition manual_grade_for_hoare_asgn_examples : option (nat*string) := None.
 (** [] *)
 
-(** **** Exercise: 2 stars, standard, recommended (hoare_asgn_wrong)  
+(** **** Exercise: 2 stars, standard, recommended (hoare_asgn_wrong)
 
     The assignment rule looks backward to almost everyone the first
     time they see it.  If it still seems puzzling, it may help
@@ -511,7 +511,7 @@ Definition manual_grade_for_hoare_asgn_examples : option (nat*string) := None.
 Definition manual_grade_for_hoare_asgn_wrong : option (nat*string) := None.
 (** [] *)
 
-(** **** Exercise: 3 stars, advanced (hoare_asgn_fwd)  
+(** **** Exercise: 3 stars, advanced (hoare_asgn_fwd)
 
     However, by using a _parameter_ [m] (a Coq number) to remember the
     original value of [X] we can define a Hoare rule for assignment
@@ -536,10 +536,25 @@ Theorem hoare_asgn_fwd :
   {{fun st => P (X !-> m ; st)
            /\ st X = aeval (X !-> m ; st) a }}.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold hoare_triple.
+  intros m a P st st'.
+  intros E [A B].
+  inversion E ; subst.
+  split. {
+    rewrite t_update_shadow.
+    rewrite t_update_same.
+    assumption.
+  } {
+    rewrite t_update_eq.
+    rewrite t_update_shadow.
+    rewrite t_update_same.
+    reflexivity.
+  }
+Qed.
+
 (** [] *)
 
-(** **** Exercise: 2 stars, advanced, optional (hoare_asgn_fwd_exists)  
+(** **** Exercise: 2 stars, advanced, optional (hoare_asgn_fwd_exists)
 
     Another way to define a forward rule for assignment is to
     existentially quantify over the previous value of the assigned
@@ -560,7 +575,16 @@ Theorem hoare_asgn_fwd_exists :
                 st X = aeval (X !-> m ; st) a }}.
 Proof.
   intros a P.
-  (* FILL IN HERE *) Admitted.
+  unfold hoare_triple.
+  intros st st' E Pst.
+  exists (st X).
+  eapply hoare_asgn_fwd.
+  apply E.
+  split.
+  - assumption.
+  - reflexivity.
+Qed.
+
 (** [] *)
 
 (* ================================================================= *)
@@ -618,8 +642,9 @@ Theorem hoare_consequence_pre : forall (P P' Q : Assertion) c,
   {{P}} c {{Q}}.
 Proof.
   intros P P' Q c Hhoare Himp.
-  intros st st' Hc HP. apply (Hhoare st st').
-  assumption. apply Himp. assumption. Qed.
+  intros st st' Hc HP.
+  apply (Hhoare st st') ; auto.
+Qed.
 
 Theorem hoare_consequence_post : forall (P Q Q' : Assertion) c,
   {{P}} c {{Q'}} ->
@@ -803,7 +828,7 @@ Proof.
   intros P Q HP HQ. destruct HP as [y HP']. eapply HQ. eassumption.
 Qed.
 
-(** **** Exercise: 2 stars, standard (hoare_asgn_examples_2)  
+(** **** Exercise: 2 stars, standard (hoare_asgn_examples_2)
 
     Translate these informal Hoare triples...
 
@@ -883,6 +908,7 @@ Proof.
 (** Here's an example of a program involving both assignment and
     sequencing. *)
 
+
 Example hoare_asgn_example3 : forall a n,
   {{fun st => aeval st a = n}}
   X ::= a;; SKIP
@@ -900,7 +926,7 @@ Qed.
     [hoare_consequence_pre] and the [eapply] tactic, as in this
     example. *)
 
-(** **** Exercise: 2 stars, standard, recommended (hoare_asgn_example4)  
+(** **** Exercise: 2 stars, standard, recommended (hoare_asgn_example4)
 
     Translate this "decorated program" into a formal proof:
 
@@ -923,7 +949,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, standard (swap_exercise)  
+(** **** Exercise: 3 stars, standard (swap_exercise)
 
     Write an Imp program [c] that swaps the values of [X] and [Y] and
     show that it satisfies the following specification:
@@ -947,7 +973,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 3 stars, standard (hoarestate1)  
+(** **** Exercise: 3 stars, standard (hoarestate1)
 
     Explain why the following proposition can't be proven:
 
@@ -967,10 +993,10 @@ Definition manual_grade_for_hoarestate1 : option (nat*string) := None.
 (** ** Conditionals *)
 
 (** What sort of rule do we want for reasoning about conditional
-    commands? 
+    commands?
 
     Certainly, if the same assertion [Q] holds after executing
-    either of the branches, then it holds after the whole conditional. 
+    either of the branches, then it holds after the whole conditional.
     So we might be tempted to write:
 
               {{P}} c1 {{Q}}
@@ -998,7 +1024,7 @@ Definition manual_grade_for_hoarestate1 : option (nat*string) := None.
     Making this information available in the premises of the rule gives
     us more information to work with when reasoning about the behavior
     of [c1] and [c2] (i.e., the reasons why they establish the
-    postcondition [Q]). 
+    postcondition [Q]).
 
               {{P /\   b}} c1 {{Q}}
               {{P /\ ~ b}} c2 {{Q}}
@@ -1081,7 +1107,7 @@ Proof.
     simpl; intros st _. omega.
 Qed.
 
-(** **** Exercise: 2 stars, standard (if_minus_plus)  
+(** **** Exercise: 2 stars, standard (if_minus_plus)
 
     Prove the following hoare triple using [hoare_if].  Do not
     use [unfold hoare_triple].  *)
@@ -1100,7 +1126,7 @@ Proof.
 (* ----------------------------------------------------------------- *)
 (** *** Exercise: One-sided conditionals *)
 
-(** **** Exercise: 4 stars, standard (if1_hoare)  
+(** **** Exercise: 4 stars, standard (if1_hoare)
 
     In this exercise we consider extending Imp with "one-sided
     conditionals" of the form [IF1 b THEN c FI]. Here [b] is a boolean
@@ -1254,7 +1280,7 @@ Definition manual_grade_for_if1_hoare : option (nat*string) := None.
 (** But, as we remarked above for the conditional, we know a
     little more at the end -- not just [P], but also the fact
     that [b] is false in the current state.  So we can enrich the
-    postcondition a little: 
+    postcondition a little:
 
       {{P}} WHILE b DO c END {{P /\ ~ b}}
 *)
@@ -1267,7 +1293,7 @@ Definition manual_grade_for_if1_hoare : option (nat*string) := None.
     execution of [c], and since each execution of [c]
     re-establishes [P] when it finishes, we can always assume
     that [P] holds at the beginning of [c].  This leads us to the
-    following rule: 
+    following rule:
 
                    {{P}} c {{P}}
         -----------------------------------
@@ -1280,9 +1306,9 @@ Definition manual_grade_for_if1_hoare : option (nat*string) := None.
 
 (** This gives us a little more information to use in reasoning
     about [c] (showing that it establishes the invariant by the time
-    it finishes).  
+    it finishes).
 
-    And this leads us to the final version of the rule: 
+    And this leads us to the final version of the rule:
 
                {{P /\ b}} c {{P}}
         ----------------------------------  (hoare_while)
@@ -1302,7 +1328,7 @@ Proof.
   remember (WHILE b DO c END)%imp as wcom eqn:Heqwcom.
   induction He;
     try (inversion Heqwcom); subst; clear Heqwcom.
-  - (* E_WhileFalse *) 
+  - (* E_WhileFalse *)
     split. assumption. apply bexp_eval_false. assumption.
   - (* E_WhileTrue *)
     apply IHHe2. reflexivity.
@@ -1377,7 +1403,7 @@ Proof.
 (* ----------------------------------------------------------------- *)
 (** *** Exercise: [REPEAT] *)
 
-(** **** Exercise: 4 stars, advanced (hoare_repeat)  
+(** **** Exercise: 4 stars, advanced (hoare_repeat)
 
     In this exercise, we'll add a new command to our language of
     commands: [REPEAT] c [UNTIL] b [END]. You will write the
@@ -1536,7 +1562,7 @@ Definition manual_grade_for_hoare_repeat : option (nat*string) := None.
 (* ################################################################# *)
 (** * Additional Exercises *)
 
-(** **** Exercise: 3 stars, standard (hoare_havoc)  
+(** **** Exercise: 3 stars, standard (hoare_havoc)
 
     In this exercise, we will derive proof rules for a [HAVOC]
     command, which is similar to the nondeterministic [any] expression
@@ -1760,7 +1786,7 @@ Proof.
 (** Your task is now to state Hoare rules for [ASSERT] and [ASSUME],
     and use them to prove a simple program correct.  Name your hoare
     rule theorems [hoare_assert] and [hoare_assume].
-     
+
     For your benefit, we provide proofs for the old hoare rules
     adapted to the new semantics. *)
 
