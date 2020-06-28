@@ -946,7 +946,15 @@ Example hoare_asgn_example4 :
   X ::= 1;; Y ::= 2
   {{fun st => st X = 1 /\ st Y = 2}}.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  eapply hoare_seq.
+  apply hoare_asgn.
+  eapply hoare_consequence_pre.
+  apply hoare_asgn.
+  intros st T.
+  cbv.
+  split ; reflexivity.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, standard (swap_exercise)
@@ -963,14 +971,30 @@ Proof.
     beginning of your program.)  *)
 
 Definition swap_program : com
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+  := (Z ::= X ;; X ::= Y ;; Y ::= Z)%imp.
 
 Theorem swap_exercise :
   {{fun st => st X <= st Y}}
   swap_program
   {{fun st => st Y <= st X}}.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  apply hoare_seq with (fun st => st Z <= st Y). {
+    apply hoare_seq with (fun st => st Z <= st X). {
+      eapply hoare_consequence_pre.
+      - apply hoare_asgn.
+      - lazy. intros. assumption.
+    } {
+      eapply hoare_consequence_pre.
+      - apply hoare_asgn.
+      - lazy. intros. assumption.
+    }
+  } {
+    eapply hoare_consequence_pre.
+    - apply hoare_asgn.
+    - lazy. intros. assumption.
+  }
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, standard (hoarestate1)
@@ -1056,7 +1080,8 @@ Lemma bexp_eval_false : forall b st,
 Proof.
   intros b st Hbe contra.
   unfold bassn in contra.
-  rewrite -> contra in Hbe. inversion Hbe.  Qed.
+  congruence.
+Qed.
 
 (** Now we can formalize the Hoare proof rule for conditionals
     and prove it correct. *)
@@ -1120,7 +1145,16 @@ Theorem if_minus_plus :
   FI
   {{fun st => st Y = st X + st Z}}.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  apply hoare_if ;
+    eapply hoare_consequence_pre; try (apply hoare_asgn);
+    unfold bassn, assert_implies, beval, aeval;
+    intros st [_ H];
+    unfold assn_sub, t_update; simpl.
+  - apply leb_complete in H.
+    induction H ; omega.
+  - reflexivity.
+Qed.
+
 (** [] *)
 
 (* ----------------------------------------------------------------- *)
@@ -1198,8 +1232,13 @@ Inductive ceval : com -> state -> state -> Prop :=
       st  =[ c ]=> st' ->
       st' =[ WHILE b DO c END ]=> st'' ->
       st  =[ WHILE b DO c END ]=> st''
-(* FILL IN HERE *)
-
+  | E_If1True : forall st st' b c,
+      beval st b = true ->
+      st =[ c ]=> st' ->
+      st =[ IF1 b THEN c FI ]=> st'
+  | E_IF1False : forall st b c,
+      beval st b = false ->
+      st =[ IF1 b THEN c FI ]=> st
   where "st '=[' c ']=>' st'" := (ceval c st st').
 Close Scope imp_scope.
 
@@ -1237,13 +1276,37 @@ Notation "{{ P }}  c  {{ Q }}" := (hoare_triple P c Q)
     rules also. Because we're working in a separate module, you'll
     need to copy here the rules you find necessary. *)
 
+Lemma hoare_if1 : forall b c P Q,
+    {{ fun st => beval st b = true /\ P st }} c {{ Q }} ->
+    (fun st => beval st b = false /\ P st ) ->> Q ->
+    {{ P }} (IF1 b THEN c FI)%imp {{ Q }}.
+Proof.
+  intros b c P Q.
+  intros HTrue HFalse.
+  unfold hoare_triple in *.
+  intros st st' H HP.
+  inversion H ; subst. {
+    apply HTrue with st ; try assumption.
+    split ; assumption.
+  } {
+    apply HFalse.
+    split ; assumption.
+  }
+Qed.
+
 Lemma hoare_if1_good :
   {{ fun st => st X + st Y = st Z }}
   (IF1 ~(Y = 0) THEN
     X ::= X + Y
   FI)%imp
   {{ fun st => st X = st Z }}.
-Proof. (* FILL IN HERE *) Admitted.
+Proof.
+  eapply hoare_if1. {
+    apply hoare_consequence_pre.
+
+    eapply hoare_asgn.
+
+
 
 End If1.
 
