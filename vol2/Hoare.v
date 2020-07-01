@@ -1276,6 +1276,25 @@ Notation "{{ P }}  c  {{ Q }}" := (hoare_triple P c Q)
     rules also. Because we're working in a separate module, you'll
     need to copy here the rules you find necessary. *)
 
+
+Theorem hoare_asgn : forall Q X a,
+  {{Q [X |-> a]}} (X ::= a)%imp {{Q}}.
+Proof.
+  unfold hoare_triple.
+  intros Q X a st st' HE HQ.
+  inversion HE. subst.
+  unfold assn_sub in HQ. assumption.  Qed.
+
+Theorem hoare_consequence_pre : forall (P P' Q : Assertion) c,
+  {{P'}} c {{Q}} ->
+  P ->> P' ->
+  {{P}} c {{Q}}.
+Proof.
+  intros P P' Q c Hhoare Himp.
+  intros st st' Hc HP.
+  apply (Hhoare st st') ; auto.
+Qed.
+
 Lemma hoare_if1 : forall b c P Q,
     {{ fun st => beval st b = true /\ P st }} c {{ Q }} ->
     (fun st => beval st b = false /\ P st ) ->> Q ->
@@ -1302,11 +1321,23 @@ Lemma hoare_if1_good :
   {{ fun st => st X = st Z }}.
 Proof.
   eapply hoare_if1. {
-    apply hoare_consequence_pre.
-
-    eapply hoare_asgn.
-
-
+    eapply hoare_consequence_pre.
+    - apply hoare_asgn.
+    - unfold "->>".
+      intros st [HTrue Eq].
+      unfold assn_sub, t_update.
+      simpl.
+      assumption.
+  } {
+    unfold "->>".
+    intros st [HFalse Eq].
+    inversion HFalse.
+    apply negb_false_iff in H0.
+    apply beq_nat_true in H0.
+    rewrite H0 in Eq.
+    omega.
+  }
+Qed.
 
 End If1.
 
