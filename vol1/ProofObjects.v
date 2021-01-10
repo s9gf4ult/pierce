@@ -203,10 +203,16 @@ Definition ev_8' : even 8 := ev_SS 6 (ev_SS 4 ev_4).
 
 Theorem ev_plus4 : forall n, even n -> even (4 + n).
 Proof.
-  intros n H. simpl.
+  intros n H.
+  Show Proof.
+  simpl.
+  Show Proof.
   apply ev_SS.
+  Show Proof.
   apply ev_SS.
+  Show Proof.
   apply H.
+  Show Proof.
 Qed.
 
 (** What is the proof object corresponding to [ev_plus4]?

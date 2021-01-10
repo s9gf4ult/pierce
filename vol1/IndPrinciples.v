@@ -63,7 +63,24 @@ Proof.
 Theorem plus_one_r' : forall n:nat,
   n + 1 = S n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  apply nat_ind. {
+    simpl.
+    Show Proof.
+    reflexivity.
+    Show Proof.
+  } {
+    intros.
+    Show Proof.
+    simpl.
+    Show Proof.
+    rewrite <- H.
+    Show Proof.
+    Print eq_ind.
+    reflexivity.
+    Show Proof.
+  }
+Qed.
+
 (** [] *)
 
 (** Coq generates induction principles for every datatype defined with
@@ -319,8 +336,11 @@ Proof.
   - (* n = O *) reflexivity.
   - (* n = S n' *)
     (* Note the proof state at this point! *)
+    Show Proof.
     intros n IHn.
-    unfold P_m0r in IHn. unfold P_m0r. simpl. apply IHn. Qed.
+    unfold P_m0r in IHn. unfold P_m0r. simpl. apply IHn.
+    Show Proof.
+Qed.
 
 (** This extra naming step isn't something that we do in
     normal proofs, but it is useful to do it explicitly for an example

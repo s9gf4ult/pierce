@@ -246,6 +246,14 @@ Theorem t_update_neq : forall (A : Type) (m : total_map A) x1 x2 v,
     x1 <> x2 ->
     (x1 !-> v ; m) x2 = m x2.
 Proof.
+  intros.
+  unfold t_update.
+  destruct (eqb_string_false_iff x1 x2).
+  rewrite H1.
+  - reflexivity.
+  - assumption.
+Qed.
+
   (* FILL IN HERE *) Admitted.
 (** [] *)
 

@@ -390,6 +390,10 @@ Definition bag := natlist.
     Complete the following definitions for the functions
     [count], [sum], [add], and [member] for bags. *)
 
+Check eqb.
+
+Search "eqb".
+
 Fixpoint count (v:nat) (s:bag) : nat :=
   match s with
   | nil => 0

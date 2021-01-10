@@ -302,7 +302,7 @@ Proof.
   intros n H.
   inversion H.
   inversion H1.
-  apply H3.
+  assumption.
 Qed.
 (** [] *)
 
