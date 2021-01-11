@@ -254,7 +254,6 @@ Proof.
   - assumption.
 Qed.
 
-  (* FILL IN HERE *) Admitted.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (t_update_shadow)
@@ -268,7 +267,13 @@ Qed.
 Lemma t_update_shadow : forall (A : Type) (m : total_map A) x v1 v2,
     (x !-> v2 ; x !-> v1 ; m) = (x !-> v2 ; m).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros.
+  unfold t_update.
+  apply functional_extensionality.
+  intros.
+  simpl.
+  destruct (eqb_string x x0) ; reflexivity.
+Qed.
 (** [] *)
 
 (** For the final two lemmas about total maps, it's convenient to use
