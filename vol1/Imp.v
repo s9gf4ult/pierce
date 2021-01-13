@@ -1692,28 +1692,20 @@ Inductive no_whilesR: com -> Prop :=
 
 
 Theorem no_whiles_eqv:
-   forall c, no_whiles c = true <-> no_whilesR c.
+   forall c : com, no_whiles c = true <-> no_whilesR c.
 Proof.
   split. {
     intros H.
-    induction c. {
-      constructor.
-    } {
-      constructor.
-    } {
-      inversion H.
+    induction c ; try (constructor ; fail) ; inversion H. {
       destruct (andb_prop (no_whiles c1) (no_whiles c2)). assumption.
       constructor.
       - apply IHc1 ; assumption.
       - apply IHc2 ; assumption.
     } {
-      inversion H.
       destruct (andb_prop (no_whiles c1) (no_whiles c2)). assumption.
       constructor.
       - apply IHc1 ; assumption.
       - apply IHc2 ; assumption.
-    } {
-      inversion H.
     }
   } {
     intros H.
