@@ -1521,11 +1521,11 @@ Proof.
   (* We must supply the intermediate state *)
   apply E_Seq with (X !-> 2).
   - (* assignment command *)
-    apply E_Ass. reflexivity.
+    apply E_Ass. simpl. reflexivity.
   - (* if command *)
     apply E_IfFalse.
-    reflexivity.
-    apply E_Ass. reflexivity.
+    + reflexivity.
+    + apply E_Ass. reflexivity.
 Qed.
 
 (** **** Exercise: 2 stars, standard (ceval_example2)  *)
@@ -1683,13 +1683,54 @@ Close Scope imp_scope.
     while loops.  Then prove its equivalence with [no_whiles]. *)
 
 Inductive no_whilesR: com -> Prop :=
- (* FILL IN HERE *)
+  | NW_Skip : no_whilesR SKIP
+  | NW_Ass a n : no_whilesR (a ::= n)
+  | NW_Seq c1 c2 (nw1 : no_whilesR c1) (nw2 : no_whilesR c2) : no_whilesR (c1 ;; c2)
+  | NW_Test b c1 c2 (nw1 : no_whilesR c1) (nw2 : no_whilesR c2)
+    : no_whilesR (TEST b THEN c1 ELSE c2 FI)
 .
+
 
 Theorem no_whiles_eqv:
    forall c, no_whiles c = true <-> no_whilesR c.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  split. {
+    intros H.
+    induction c. {
+      constructor.
+    } {
+      constructor.
+    } {
+      inversion H.
+      destruct (andb_prop (no_whiles c1) (no_whiles c2)). assumption.
+      constructor.
+      - apply IHc1 ; assumption.
+      - apply IHc2 ; assumption.
+    } {
+      inversion H.
+      destruct (andb_prop (no_whiles c1) (no_whiles c2)). assumption.
+      constructor.
+      - apply IHc1 ; assumption.
+      - apply IHc2 ; assumption.
+    } {
+      inversion H.
+    }
+  } {
+    intros H.
+    induction H ; try reflexivity. {
+      simpl.
+      rewrite -> IHno_whilesR1.
+      rewrite -> IHno_whilesR2.
+      reflexivity.
+    } {
+      simpl.
+      rewrite -> IHno_whilesR1.
+      rewrite -> IHno_whilesR2.
+      reflexivity.
+    }
+  }
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 4 stars, standard (no_whiles_terminating)
