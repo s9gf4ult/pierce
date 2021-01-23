@@ -1491,7 +1491,6 @@ Inductive ceval : com -> state -> state -> Prop :=
       st  =[ WHILE b DO c END ]=> st''
   | E_Havoc : forall st x n,
       st =[ CHavoc x ]=> (x !-> n; st)
-(* FILL IN HERE *)
 
   where "st =[ c ]=> st'" := (ceval c st st').
 Close Scope imp_scope.
@@ -1631,13 +1630,52 @@ Definition p2 : com :=
 
 Lemma p1_may_diverge : forall st st', st X <> 0 ->
   ~ st =[ p1 ]=> st'.
-Proof. (* FILL IN HERE *) Admitted.
+Proof.
+  intros st st' nz H.
+  remember p1 as com eqn:Heq.
+  induction H ; inversion Heq ; subst . {
+    simpl in H.
+    destruct (st X). {
+      auto.
+    } {
+      simpl in H. discriminate H.
+    }
+  } {
+    apply IHceval2. {
+      inversion H0.
+      subst.
+      inversion H4. subst.
+      inversion H7. subst.
+      simpl.
+      rewrite -> t_update_eq.
+      destruct ((Y !-> n; st) X) ; simpl ; discriminate.
+    }
+    assumption.
+  }
+Qed.
 
 Lemma p2_may_diverge : forall st st', st X <> 0 ->
   ~ st =[ p2 ]=> st'.
 Proof.
-(* FILL IN HERE *) Admitted.
-(** [] *)
+  intros st st' nz H.
+  remember p2 as c eqn:Heq.
+  induction H ; inversion Heq ; subst. {
+    simpl in H.
+    destruct (st X).  {
+      auto.
+    } {
+      simpl in H. discriminate.
+    }
+  } {
+    apply IHceval2. {
+      inversion H0. subst. assumption.
+    } {
+      assumption.
+    }
+  }
+Qed.
+
+  (** [] *)
 
 (** **** Exercise: 4 stars, advanced (p1_p2_equiv)
 
@@ -1645,7 +1683,9 @@ Proof.
     equivalent. *)
 
 Theorem p1_p2_equiv : cequiv p1 p2.
-Proof. (* FILL IN HERE *) Admitted.
+Proof.Admitted.
+
+
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced (p3_p4_inequiv)
