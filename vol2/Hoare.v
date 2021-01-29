@@ -1567,8 +1567,15 @@ Inductive ceval : state -> com -> state -> Prop :=
       st  =[ c ]=> st' ->
       st' =[ WHILE b DO c END ]=> st'' ->
       st  =[ WHILE b DO c END ]=> st''
-(* FILL IN HERE *)
-
+  | E_RepeatFalse : forall b st st' st'' c,
+      st =[ c ]=> st' ->
+      beval st' b = false ->
+      st' =[ REPEAT c UNTIL b END ]=> st'' ->
+      st =[ REPEAT c UNTIL b END ]=> st''
+  | E_RepeatTrue : forall b st st' c,
+      st =[ c ]=> st' ->
+      beval st' b = true ->
+      st =[ REPEAT c UNTIL b END ]=> st'
 where "st '=[' c ']=>' st'" := (ceval st c st').
 
 (** A couple of definitions from above, copied here so they use the
@@ -1593,16 +1600,46 @@ Definition ex1_repeat :=
 Theorem ex1_repeat_works :
   empty_st =[ ex1_repeat ]=> (Y !-> 1 ; X !-> 1).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  apply E_RepeatTrue.
+  - eapply E_Seq.
+    + apply E_Ass.
+      simpl. reflexivity.
+    + apply E_Ass.
+      simpl. reflexivity.
+  - simpl. reflexivity.
+Qed.
 
 (** Now state and prove a theorem, [hoare_repeat], that expresses an
     appropriate proof rule for [repeat] commands.  Use [hoare_while]
     as a model, and try to make your rule as precise as possible. *)
 
-(* FILL IN HERE *)
+Theorem hoare_repeat : forall c b P ,
+    {{P}} c {{P}} ->
+    {{P}} REPEAT c UNTIL b END {{fun st => P st /\ bassn b st}}.
+Proof.
+  intros c b P hoare st st' H Pst.
+  remember (REPEAT c UNTIL b END) as rep eqn:repEq.
+  induction H ; inversion repEq ; subst . {
+    apply IHceval2. {
+      assumption.
+    } {
+      eapply hoare.
+      apply H.
+      assumption.
+    }
+  } {
+    unfold hoare_triple in hoare.
+    split. {
+      apply (hoare st st') ; assumption.
+    } {
+      auto.
+    }
+  }
+Qed.
 
 (** For full credit, make sure (informally) that your rule can be used
     to prove the following valid Hoare triple:
+
 
   {{ X > 0 }}
   REPEAT
@@ -1611,6 +1648,31 @@ Proof.
   UNTIL X = 0 END
   {{ X = 0 /\ Y > 0 }}
 *)
+
+Theorem hoare_consequence_post : forall (P Q Q' : Assertion) c,
+  {{P}} c {{Q'}} ->
+  Q' ->> Q ->
+  {{P}} c {{Q}}.
+Proof.
+  intros P Q Q' c Hhoare Himp.
+  intros st st' Hc HP.
+  apply Himp.
+  apply (Hhoare st st').
+  assumption. assumption. Qed.
+
+
+Example hoare_repeat_example:
+  {{fun st => st X > 0 }}
+  REPEAT
+    Y ::= X;;
+    X ::= X - 1
+  UNTIL X = 0 END
+  {{fun st => st X = 0 /\ st Y > 0 }}.
+Proof.
+  eapply hoare_consequence_post. {
+    apply hoare_repeat. {
+      apply
+
 
 End RepeatExercise.
 
