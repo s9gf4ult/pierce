@@ -1661,6 +1661,24 @@ Proof.
   assumption. assumption. Qed.
 
 
+Theorem hoare_seq : forall P Q R c1 c2,
+     {{Q}} c2 {{R}} ->
+     {{P}} c1 {{Q}} ->
+     {{P}} c1;;c2 {{R}}.
+Proof.
+  intros P Q R c1 c2 H1 H2 st st' H12 Pre.
+  inversion H12; subst.
+  apply (H1 st'0 st'); try assumption.
+  apply (H2 st st'0); assumption. Qed.
+
+Theorem hoare_asgn : forall Q X a,
+  {{Q [X |-> a]}} (X ::= a) {{Q}}.
+Proof.
+  unfold hoare_triple.
+  intros Q X a st st' HE HQ.
+  inversion HE. subst.
+  unfold assn_sub in HQ. assumption.  Qed.
+
 Example hoare_repeat_example:
   {{fun st => st X > 0 }}
   REPEAT
@@ -1671,7 +1689,10 @@ Example hoare_repeat_example:
 Proof.
   eapply hoare_consequence_post. {
     apply hoare_repeat. {
-      apply
+      eapply hoare_seq. {
+        apply hoare_asgn.
+      } {
+        apply hoare_asgn.
 
 
 End RepeatExercise.
