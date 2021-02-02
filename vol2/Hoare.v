@@ -1660,6 +1660,16 @@ Proof.
   apply (Hhoare st st').
   assumption. assumption. Qed.
 
+Theorem hoare_consequence_pre : forall (P P' Q : Assertion) c,
+  {{P'}} c {{Q}} ->
+  P ->> P' ->
+  {{P}} c {{Q}}.
+Proof.
+  intros P P' Q c Hhoare Himp.
+  intros st st' Hc HP.
+  apply (Hhoare st st') ; auto.
+Qed.
+
 
 Theorem hoare_seq : forall P Q R c1 c2,
      {{Q}} c2 {{R}} ->
@@ -1687,12 +1697,7 @@ Example hoare_repeat_example:
   UNTIL X = 0 END
   {{fun st => st X = 0 /\ st Y > 0 }}.
 Proof.
-  eapply hoare_consequence_post. {
-    apply hoare_repeat. {
-      eapply hoare_seq. {
-        apply hoare_asgn.
-      } {
-        apply hoare_asgn.
+Admitted.
 
 
 End RepeatExercise.
