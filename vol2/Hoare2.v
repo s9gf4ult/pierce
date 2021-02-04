@@ -25,7 +25,7 @@ From PLF Require Import Imp.
     Such a _decorated program_ carries within it an argument for its
     own correctness. *)
 
-(** For example, consider the program: 
+(** For example, consider the program:
 
     X ::= m;;
     Z ::= p;
@@ -50,7 +50,7 @@ From PLF Require Import Imp.
       {{ Z = p - m }}
 
     Here is a decorated version of the program, embodying a
-    proof of this specification: 
+    proof of this specification:
 
       {{ True }} ->>
       {{ m = m }}
@@ -68,7 +68,7 @@ From PLF Require Import Imp.
       X ::= X - 1
         {{ Z - X = p - m }}
     END
-      {{ Z - X = p - m /\ ~ (X <> 0) }} ->> 
+      {{ Z - X = p - m /\ ~ (X <> 0) }} ->>
       {{ Z = p - m }}
 *)
 
@@ -171,8 +171,8 @@ From PLF Require Import Imp.
        Y ::= X - Y;;
        X ::= X - Y
 
-    We can prove (informally) using decorations that this program is 
-    correct -- i.e., it always swaps the values of variables [X] and [Y]. 
+    We can prove (informally) using decorations that this program is
+    correct -- i.e., it always swaps the values of variables [X] and [Y].
 
     (1)     {{ X = m /\ Y = n }} ->>
     (2)     {{ (X + Y) - ((X + Y) - Y) = n /\ (X + Y) - Y = m }}
@@ -249,21 +249,21 @@ These decorations were constructed as follows:
     arbitrary natural numbers [n] and [m] (for example, [3 - 5 + 5 =
     5]). *)
 
-(** **** Exercise: 2 stars, standard (if_minus_plus_reloaded)  
+(** **** Exercise: 2 stars, standard (if_minus_plus_reloaded)
 
     Fill in valid decorations for the following program:
 
        {{ True }}
       TEST X <= Y THEN
-          {{                         }} ->>
-          {{                         }}
+          {{ True /\ X <= Y }} ->>
+          {{ Y = X + (Y - X) }}
         Z ::= Y - X
-          {{                         }}
+          {{ Y = X + Z }}
       ELSE
-          {{                         }} ->>
-          {{                         }}
+          {{ True /\ ~ (X <= Y) }} ->>
+          {{ X + Z = X + Z }}
         Y ::= X + Z
-          {{                         }}
+          {{ Y = X + Z }}
       FI
         {{ Y = X + Z }}
 *)
@@ -425,7 +425,7 @@ Proof.
     loop.  As a first step we can leave [Inv] as an unknown and build a
     _skeleton_ for the proof by applying the rules for local
     consistency (working from the end of the program to the beginning,
-    as usual, and without any thinking at all yet). 
+    as usual, and without any thinking at all yet).
 
     This leads to the following skeleton:
 
@@ -448,7 +448,7 @@ Proof.
       precondition, i.e., (1) must imply (2);
     - (b) it must be _strong_ enough to imply the program's postcondition,
       i.e., (7) must imply (8);
-    - (c) it must be _preserved_ by each iteration of the loop (given 
+    - (c) it must be _preserved_ by each iteration of the loop (given
       that the loop guard evaluates to true), i.e., (3) must imply (4). *)
 
 (** These conditions are actually independent of the particular
@@ -552,7 +552,7 @@ Proof.
 (* ================================================================= *)
 (** ** Exercise: Slow Assignment *)
 
-(** **** Exercise: 2 stars, standard (slow_assignment)  
+(** **** Exercise: 2 stars, standard (slow_assignment)
 
     A roundabout way of assigning a number currently stored in [X] to
     the variable [Y] is to start [Y] at [0], then decrement [X] until
@@ -579,7 +579,7 @@ Definition manual_grade_for_decorations_in_slow_assignment : option (nat*string)
 (* ================================================================= *)
 (** ** Exercise: Slow Addition *)
 
-(** **** Exercise: 3 stars, standard, optional (add_slowly_decoration)  
+(** **** Exercise: 3 stars, standard, optional (add_slowly_decoration)
 
     The following program adds the variable X into the variable Z
     by repeatedly decrementing X and incrementing Z.
@@ -594,7 +594,7 @@ Definition manual_grade_for_decorations_in_slow_assignment : option (nat*string)
     specification of [add_slowly]; then (informally) decorate the
     program accordingly. *)
 
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
@@ -647,7 +647,7 @@ Fixpoint parity x :=
     [parity]).  For verifying (c), we observe that, when [2 <= X], we
     have [parity X = parity (X-2)]. *)
 
-(** **** Exercise: 3 stars, standard, optional (parity_formal)  
+(** **** Exercise: 3 stars, standard, optional (parity_formal)
 
     Translate this proof to Coq. Refer to the [reduce_to_zero] example
     for ideas. You may find the following two lemmas useful: *)
@@ -669,6 +669,7 @@ Proof.
     exfalso. apply H. omega.
 Qed.
 
+
 Theorem parity_correct : forall m,
     {{ fun st => st X = m }}
   WHILE 2 <= X DO
@@ -676,8 +677,70 @@ Theorem parity_correct : forall m,
   END
     {{ fun st => st X = parity m }}.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros m.
+  eapply hoare_consequence_post. {
+    eapply hoare_consequence_pre. {
+      eapply (hoare_while (fun st => parity (st X) = parity m)).
+      eapply hoare_consequence_pre. {
+        apply hoare_asgn.
+      } {
+        Unset Printing Notations.
+        unfold assert_implies.
+        intros.
+        inversion H.
+        unfold assn_sub.
+        Set Printing Notations.
+        rewrite t_update_eq.
+        rewrite <- H0.
+        apply parity_ge_2.
+        unfold bassn in H1.
+        simpl in H1.
+        destruct (st X). {
+          discriminate.
+        } {
+          destruct n. {
+            discriminate.
+          } {
+            clear H H0.
+            induction n. {
+              reflexivity.
+            } {
+              apply le_S.
+              assumption.
+            }
+          }
+        }
+      }
+    } {
+      unfold assert_implies.
+      intros.
+      rewrite H.
+      reflexivity.
+    }
+  } {
+    unfold assert_implies.
+    intros.
+    inversion H.
+    rewrite <- H0.
+    symmetry.
+    apply parity_lt_2.
+    unfold bassn in H1.
+    simpl in H1.
+    destruct (st X). {
+      omega.
+    } {
+      destruct n. {
+        omega.
+      } {
+        exfalso.
+        apply H1.
+        reflexivity.
+      }
+    }
+  }
+Qed.
+
+  (** [] *)
 
 (* ================================================================= *)
 (** ** Example: Finding Square Roots *)
@@ -714,12 +777,12 @@ Proof.
     is almost the same as the first conjunct of (5), except that (4)
     mentions [X] while (5) mentions [m]. But note that [X] is never
     assigned in this program, so we should always have [X=m]; we
-    didn't propagate this information from (1) into the loop 
+    didn't propagate this information from (1) into the loop
     invariant, but we could!
 
-    Also, we don't need the second conjunct of (8), since we can 
-    obtain it from the negation of the guard -- the third conjunct 
-    in (7) -- again under the assumption that [X=m].  This allows 
+    Also, we don't need the second conjunct of (8), since we can
+    obtain it from the negation of the guard -- the third conjunct
+    in (7) -- again under the assumption that [X=m].  This allows
     us to simplify a bit.
 
     So we now try [X=m /\ Z*Z <= m] as the loop invariant:
@@ -814,14 +877,14 @@ Proof.
 
     It is worth comparing the postcondition [Z = m*m] and the [Z =
     Y*m] conjunct of the invariant. It is often the case that one has
-    to replace parameters with variables -- or with expressions 
-    involving both variables and parameters, like [m - Y] -- when 
+    to replace parameters with variables -- or with expressions
+    involving both variables and parameters, like [m - Y] -- when
     going from postconditions to invariants. *)
 
 (* ================================================================= *)
 (** ** Exercise: Factorial *)
 
-(** **** Exercise: 3 stars, standard (factorial)  
+(** **** Exercise: 3 stars, standard (factorial)
 
     Recall that [n!] denotes the factorial of [n] (i.e., [n! =
     1*2*...*n]).  Here is an Imp program that calculates the factorial
@@ -872,7 +935,7 @@ Definition manual_grade_for_decorations_in_factorial : option (nat*string) := No
 (* ================================================================= *)
 (** ** Exercise: Min *)
 
-(** **** Exercise: 3 stars, standard (Min_Hoare)  
+(** **** Exercise: 3 stars, standard (Min_Hoare)
 
     Fill in valid decorations for the following program.
   For the [=>] steps in your annotations, you may rely (silently)
@@ -911,7 +974,7 @@ Definition manual_grade_for_decorations_in_factorial : option (nat*string) := No
 Definition manual_grade_for_decorations_in_Min_Hoare : option (nat*string) := None.
 (** [] *)
 
-(** **** Exercise: 3 stars, standard (two_loops)  
+(** **** Exercise: 3 stars, standard (two_loops)
 
     Here is a very inefficient way of adding 3 numbers:
 
@@ -967,7 +1030,7 @@ Definition manual_grade_for_decorations_in_two_loops : option (nat*string) := No
 (* ================================================================= *)
 (** ** Exercise: Power Series *)
 
-(** **** Exercise: 4 stars, standard, optional (dpow2_down)  
+(** **** Exercise: 4 stars, standard, optional (dpow2_down)
 
     Here is a program that computes the series:
     [1 + 2 + 2^2 + ... + 2^m = 2^(m+1) - 1]
@@ -983,7 +1046,7 @@ Definition manual_grade_for_decorations_in_two_loops : option (nat*string) := No
 
     Write a decorated program for this. *)
 
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
@@ -1031,7 +1094,7 @@ Definition is_wp P c Q :=
     _weakest_ (easiest to satisfy) assertion that guarantees that
     [Q] will hold after executing [c]. *)
 
-(** **** Exercise: 1 star, standard, optional (wp)  
+(** **** Exercise: 1 star, standard, optional (wp)
 
     What are the weakest preconditions of the following commands
    for the following postconditions?
@@ -1054,11 +1117,11 @@ Definition is_wp P c Q :=
      WHILE true DO X ::= 0 END
      {{ X = 0 }}
 *)
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
-(** **** Exercise: 3 stars, advanced, optional (is_wp_formal)  
+(** **** Exercise: 3 stars, advanced, optional (is_wp_formal)
 
     Prove formally, using the definition of [hoare_triple], that [Y <= 4]
    is indeed the weakest precondition of [X ::= Y + 1] with respect to
@@ -1071,7 +1134,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, advanced, optional (hoare_asgn_weakest)  
+(** **** Exercise: 2 stars, advanced, optional (hoare_asgn_weakest)
 
     Show that the precondition in the rule [hoare_asgn] is in fact the
     weakest precondition. *)
@@ -1082,7 +1145,7 @@ Proof.
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 2 stars, advanced, optional (hoare_havoc_weakest)  
+(** **** Exercise: 2 stars, advanced, optional (hoare_havoc_weakest)
 
     Show that your [havoc_pre] rule from the [himp_hoare] exercise
     in the [Hoare] chapter returns the weakest precondition. *)
@@ -1186,7 +1249,7 @@ Set Printing All.
     of the program. *)
 
 Example dec_while : decorated :=
-  {{ fun st => True }} 
+  {{ fun st => True }}
   WHILE ~(X = 0)
   DO
     {{ fun st => True /\ st X <> 0}}
@@ -1393,8 +1456,8 @@ Eval simpl in (verification_conditions_dec dec_while).
       (fun st : state => True /\ st X = 0)) /\
       (fun st : state => True /\ st X <> 0) ->>
       (fun _ : state => True) [X |-> X - 1]) /\
-      (fun st : state => True /\ st X = 0) ->> 
-      (fun st : state => st X = 0)   
+      (fun st : state => True /\ st X = 0) ->>
+      (fun st : state => st X = 0)
 *)
 
 (** In principle, we could work with such propositions using just the
@@ -1976,7 +2039,7 @@ Qed.
 (* ================================================================= *)
 (** ** Further Exercises *)
 
-(** **** Exercise: 3 stars, advanced (slow_assignment_dec)  
+(** **** Exercise: 3 stars, advanced (slow_assignment_dec)
 
     In the [slow_assignment] exercise above, we saw a roundabout way
     of assigning a number currently stored in [X] to the variable [Y]:
@@ -1995,7 +2058,7 @@ Proof. (* FILL IN HERE *) Admitted.
 Definition manual_grade_for_check_defn_of_slow_assignment_dec : option (nat*string) := None.
 (** [] *)
 
-(** **** Exercise: 4 stars, advanced (factorial_dec)   
+(** **** Exercise: 4 stars, advanced (factorial_dec)
 
     Remember the factorial function we worked with before: *)
 
@@ -2015,7 +2078,7 @@ Fixpoint real_fact (n : nat) : nat :=
 Definition manual_grade_for_factorial_dec : option (nat*string) := None.
 (** [] *)
 
-(** **** Exercise: 4 stars, advanced, optional (fib_eqn)  
+(** **** Exercise: 4 stars, advanced, optional (fib_eqn)
 
     The Fibonacci function is usually written like this:
 
@@ -2047,7 +2110,7 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 4 stars, advanced, optional (fib)  
+(** **** Exercise: 4 stars, advanced, optional (fib)
 
     The following Imp program leaves the value of [fib n] in the
     variable [Y] when it terminates:
@@ -2069,7 +2132,7 @@ Proof.
 *)
 
 Definition T : string := "T".
-                      
+
 Definition dfib (n : nat) : decorated
 (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
 
@@ -2078,7 +2141,7 @@ Theorem dfib_correct : forall n,
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
-(** **** Exercise: 5 stars, advanced, optional (improve_dcom)  
+(** **** Exercise: 5 stars, advanced, optional (improve_dcom)
 
     The formal decorated programs defined in this section are intended
     to look as similar as possible to the informal ones defined earlier
@@ -2089,17 +2152,17 @@ Theorem dfib_correct : forall n,
     rest of the formal development leading up to the [verification_correct]
     theorem. *)
 
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
-(** **** Exercise: 4 stars, advanced, optional (implement_dcom)  
+(** **** Exercise: 4 stars, advanced, optional (implement_dcom)
 
     Adapt the parser for Imp presented in chapter [ImpParser]
     of _Logical Foundations_ to parse decorated commands (either ours
     or, even better, the ones you defined in the previous exercise). *)
 
-(* FILL IN HERE 
+(* FILL IN HERE
 
     [] *)
 
