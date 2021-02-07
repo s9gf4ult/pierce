@@ -905,18 +905,18 @@ Qed.
     well-defined on natural numbers.
 
     {{ X = m }} ->>
-    {{                                      }}
+    {{ 1 = multiply (X + 1) m }}    <<- OK the "multiply" returns 1 here because we said that
   Y ::= 1;;
-    {{                                      }}
+    {{ Y = multiply (X + 1) m }}
   WHILE ~(X = 0)
-  DO   {{                                      }} ->>
-       {{                                      }}
+  DO   {{ Y = multiply (X + 1) m /\ X <> 0 }} ->>  <<- OK by simplification of "multiply"
+       {{ Y * X = multiply ((X - 1) + 1) m }}
      Y ::= Y * X;;
-       {{                                      }}
+       {{ Y = multiply ((X - 1) + 1) m }}
      X ::= X - 1
-       {{                                      }}
+       {{ Y = multiply (X + 1) m }}
   END
-    {{                                      }} ->>
+    {{ X = 0 /\ Y = multiply (X + 1) m }} ->>    <<- OK because "multiply 1 m = m!"
     {{ Y = m! }}
 *)
 
@@ -1099,23 +1099,24 @@ Definition is_wp P c Q :=
     What are the weakest preconditions of the following commands
    for the following postconditions?
 
-  1) {{ ? }}  SKIP  {{ X = 5 }}
+  1) {{ X = 5 }}  SKIP  {{ X = 5 }}
 
-  2) {{ ? }}  X ::= Y + Z {{ X = 5 }}
+  2) {{ Y + Z = 5 }}  X ::= Y + Z {{ X = 5 }}
 
-  3) {{ ? }}  X ::= Y  {{ X = Y }}
+  3) {{ True }}  X ::= Y  {{ X = Y }}
 
-  4) {{ ? }}
-     TEST X = 0 THEN Y ::= Z + 1 ELSE Y ::= W + 2 FI
+  4) {{ (X = 0 /\ Z + 1 = 5) \/ (X <> 0 /\ W + 2 = 5) }}
+     TEST X = 0 THEN {{ Z + 1 = 5 }} Y ::= Z + 1 {{ Y = 5 }}
+                ELSE {{ W + 2 = 5 }} Y ::= W + 2 {{ Y = 5 }} FI
      {{ Y = 5 }}
 
-  5) {{ ? }}
+  5) {{ 5 = 0 (False) }}
      X ::= 5
      {{ X = 0 }}
 
-  6) {{ ? }}
-     WHILE true DO X ::= 0 END
-     {{ X = 0 }}
+  6) {{ False }}
+     WHILE true DO {{ true /\ 0 = 0 }} X ::= 0 {{ X = 0 }} END
+     {{ X = 0 /\ true = false }}
 *)
 (* FILL IN HERE
 
@@ -1131,7 +1132,26 @@ Theorem is_wp_example :
   is_wp (fun st => st Y <= 4)
     (X ::= Y + 1) (fun st => st X <= 5).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold is_wp, hoare_triple, assert_implies.
+  split; intros. {
+    inversion H. subst.
+    rewrite t_update_eq.
+    simpl. omega.
+  } {
+    eassert (_ X <= 5) as E. {
+      eapply H. {
+        apply E_Ass.
+          - reflexivity.
+      } {
+        apply H0.
+      }
+    }
+    rewrite t_update_eq in E.
+    simpl in E.
+    omega.
+  }
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 2 stars, advanced, optional (hoare_asgn_weakest)
@@ -1142,7 +1162,21 @@ Proof.
 Theorem hoare_asgn_weakest : forall Q X a,
   is_wp (Q [X |-> a]) (X ::= a) Q.
 Proof.
-(* FILL IN HERE *) Admitted.
+  unfold is_wp, hoare_triple, assert_implies.
+  split; intros.
+  Focus 2. {
+
+  }
+  Unfocus.
+
+
+    Unfocus.
+  } {
+    admit.
+  }
+  Focus.
+
+  Focus 337.
 (** [] *)
 
 (** **** Exercise: 2 stars, advanced, optional (hoare_havoc_weakest)

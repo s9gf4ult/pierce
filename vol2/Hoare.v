@@ -1541,40 +1541,39 @@ Notation "'REPEAT' e1 'UNTIL' b2 'END'" :=
 
 Reserved Notation "st '=[' c ']=>' st'" (at level 40).
 
-Inductive ceval : state -> com -> state -> Prop :=
-  | E_Skip : forall st,
-      st =[ SKIP ]=> st
-  | E_Ass  : forall st a1 n x,
+Inductive ceval (st : state) : com -> state -> Prop :=
+  | E_Skip : st =[ SKIP ]=> st
+  | E_Ass  : forall a1 n x,
       aeval st a1 = n ->
       st =[ x ::= a1 ]=> (x !-> n ; st)
-  | E_Seq : forall c1 c2 st st' st'',
+  | E_Seq : forall c1 c2 st' st'',
       st  =[ c1 ]=> st'  ->
       st' =[ c2 ]=> st'' ->
       st  =[ c1 ;; c2 ]=> st''
-  | E_IfTrue : forall st st' b c1 c2,
+  | E_IfTrue : forall st' b c1 c2,
       beval st b = true ->
       st =[ c1 ]=> st' ->
       st =[ TEST b THEN c1 ELSE c2 FI ]=> st'
-  | E_IfFalse : forall st st' b c1 c2,
+  | E_IfFalse : forall st' b c1 c2,
       beval st b = false ->
       st =[ c2 ]=> st' ->
       st =[ TEST b THEN c1 ELSE c2 FI ]=> st'
-  | E_WhileFalse : forall b st c,
+  | E_WhileFalse : forall b c,
       beval st b = false ->
       st =[ WHILE b DO c END ]=> st
-  | E_WhileTrue : forall st st' st'' b c,
+  | E_WhileTrue : forall st' st'' b c,
       beval st b = true ->
       st  =[ c ]=> st' ->
       st' =[ WHILE b DO c END ]=> st'' ->
       st  =[ WHILE b DO c END ]=> st''
-  | E_RepeatFalse : forall b st st' st'' c,
+  | E_RepeatFalse : forall b st' st'' c,
       st =[ c ]=> st' ->
-      beval st' b = false ->
+      ~ (bassn b st') ->
       st' =[ REPEAT c UNTIL b END ]=> st'' ->
       st =[ REPEAT c UNTIL b END ]=> st''
-  | E_RepeatTrue : forall b st st' c,
+  | E_RepeatTrue : forall b st' c,
       st =[ c ]=> st' ->
-      beval st' b = true ->
+      bassn b st' ->
       st =[ REPEAT c UNTIL b END ]=> st'
 where "st '=[' c ']=>' st'" := (ceval st c st').
 
@@ -1613,26 +1612,23 @@ Qed.
     appropriate proof rule for [repeat] commands.  Use [hoare_while]
     as a model, and try to make your rule as precise as possible. *)
 
-Theorem hoare_repeat : forall c b P ,
-    {{P}} c {{P}} ->
-    {{P}} REPEAT c UNTIL b END {{fun st => P st /\ bassn b st}}.
+Theorem hoare_repeat : forall c b Q
+  , {{fun st => ~ bassn b st }} c {{Q}}
+    -> {{fun st => ~ bassn b st }} REPEAT c UNTIL b END {{fun st => Q st /\ bassn b st}}.
 Proof.
-  intros c b P hoare st st' H Pst.
-  remember (REPEAT c UNTIL b END) as rep eqn:repEq.
-  induction H ; inversion repEq ; subst . {
-    apply IHceval2. {
-      assumption.
-    } {
-      eapply hoare.
-      apply H.
-      assumption.
-    }
+  intros c b Q Sub.
+  unfold hoare_triple.
+  intros st st' H Notb.
+  remember (REPEAT c UNTIL b END) as prog eqn:Eq.
+  (* Q st' /\ bassn b st' *)
+  unfold hoare_triple in Sub.
+  induction H ; intros ; inversion Eq ; subst . {
+    apply IHceval2 ; try reflexivity ; try assumption.
   } {
-    unfold hoare_triple in hoare.
     split. {
-      apply (hoare st st') ; assumption.
+      apply Sub with st ; try assumption.
     } {
-      auto.
+      assumption.
     }
   }
 Qed.
@@ -1697,8 +1693,87 @@ Example hoare_repeat_example:
   UNTIL X = 0 END
   {{fun st => st X = 0 /\ st Y > 0 }}.
 Proof.
-Admitted.
+  eapply hoare_consequence_post.
+  eapply hoare_consequence_pre.
+  eapply hoare_repeat.
 
+  Focus 3. {
+    unfold assert_implies, bassn.
+    intros st [Q E].
+
+    simpl in E.
+    symmetry in E.
+    apply beq_nat_eq in E.
+    split. {
+      assumption.
+    } {
+      assert (st Y = st X + 1). {
+        apply Q.
+      } {
+        omega.
+      }
+    }
+  } Unfocus.
+  {
+    eapply hoare_seq.
+    eapply hoare_consequence_pre.
+    apply hoare_asgn. {
+      unfold assert_implies, assn_sub.
+      intros.
+      rewrite t_update_neq. {
+        rewrite t_update_eq.
+        simpl.
+        assert (st Y = st X /\ st X > 0). {
+          apply H.
+        }
+        destruct H0.
+        rewrite H0.
+        rewrite -> sub_add.
+        - reflexivity.
+        - omega.
+      } {
+        intros Eq. discriminate.
+      }
+    } {
+      eapply hoare_consequence_pre.
+      eapply hoare_asgn.
+      unfold assert_implies, assn_sub.
+      intros.
+      rewrite t_update_eq.
+      rewrite t_update_neq. {
+        split. {
+          simpl. reflexivity.
+        } {
+          unfold bassn in H.
+          destruct (st X) eqn:Eq. {
+            exfalso.
+            apply H.
+            simpl.
+            rewrite -> Eq.
+            simpl.
+            reflexivity.
+          } {
+            apply gt_Sn_O.
+          }
+        }
+      } {
+        intros Eq. discriminate.
+      }
+    }
+  } {
+    unfold assert_implies, assn_sub.
+    intros.
+    destruct (st X) eqn:Eq. {
+      inversion H.
+    } {
+      intros Z.
+      unfold bassn in Z.
+      simpl in Z.
+      rewrite Eq in Z.
+      discriminate.
+    }
+  }
+Qed.
 
 End RepeatExercise.
 
@@ -2090,7 +2165,8 @@ Example assert_assume_example:
   ASSERT (X = 2)
   {{fun st => True}}.
 Proof.
-(* FILL IN HERE *) Admitted.
+Admitted.
+
 
 End HoareAssertAssume.
 (** [] *)
