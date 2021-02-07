@@ -1162,22 +1162,8 @@ Qed.
 Theorem hoare_asgn_weakest : forall Q X a,
   is_wp (Q [X |-> a]) (X ::= a) Q.
 Proof.
-  unfold is_wp, hoare_triple, assert_implies.
-  split; intros.
-  Focus 2. {
-
-  }
-  Unfocus.
-
-
-    Unfocus.
-  } {
-    admit.
-  }
-  Focus.
-
-  Focus 337.
-(** [] *)
+Admitted.
+  (** [] *)
 
 (** **** Exercise: 2 stars, advanced, optional (hoare_havoc_weakest)
 
