@@ -1162,7 +1162,21 @@ Qed.
 Theorem hoare_asgn_weakest : forall Q X a,
   is_wp (Q [X |-> a]) (X ::= a) Q.
 Proof.
-Admitted.
+  unfold is_wp.
+  split. {
+    apply hoare_asgn.
+  } {
+    unfold assert_implies, Assertion, hoare_triple.
+    intros.
+    eapply H. {
+      constructor.
+      - reflexivity.
+    } {
+      assumption.
+    }
+  }
+Qed.
+
   (** [] *)
 
 (** **** Exercise: 2 stars, advanced, optional (hoare_havoc_weakest)
@@ -1255,7 +1269,6 @@ Example dec0 :=
 Example dec1 :=
   WHILE true DO {{ fun st => True }} SKIP {{ fun st => True }} END
   {{ fun st => True }}.
-Set Printing All.
 
 (** To avoid clashing with the existing [Notation] definitions for
     ordinary [com]mands, we introduce these notations in a special
@@ -1707,6 +1720,7 @@ Proof. intros. apply l2 in H1.
        assert (G : m - 1 + 2 = S m). clear H0 H1. omega.
        rewrite G in H1. apply l3' in H0. apply H0. assumption. Qed.
 
+
 Theorem find_parity_correct : forall m,
   dec_correct (find_parity_dec m).
 Proof.
@@ -1733,7 +1747,7 @@ Proof.
         apply l3 in H; try assumption. inversion H.
       + (* st X = 2 *)
         clear H0 H2. (* omega confused otherwise *)
-        omega.
+        inversion H1. inversion H2. inversion H4.
 Qed.
 
 (** Here is a more intuitive way of writing the invariant: *)
