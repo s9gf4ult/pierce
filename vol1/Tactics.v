@@ -954,8 +954,19 @@ Proof.
     simpl.
     reflexivity.
   } {
-Abort.
-
+    intros l1 l2 H.
+    simpl in H.
+    destruct lh as [x y].
+    destruct (split lt) as [lx ly].
+    injection H.
+    intros a b.
+    subst.
+    simpl.
+    rewrite -> Hl.
+    - reflexivity.
+    - reflexivity.
+  }
+Qed.
 
 (** [] *)
 
